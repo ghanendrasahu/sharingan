@@ -6,6 +6,7 @@ import hashlib
 import mimetypes
 from datetime import UTC
 from pathlib import Path
+from typing import Any
 from uuid import uuid4
 
 import boto3
@@ -16,7 +17,7 @@ from app.core.config import get_settings
 settings = get_settings()
 
 
-def get_s3_client():
+def get_s3_client() -> Any:
     """Create an S3-compatible client."""
     return boto3.client(
         "s3",

@@ -25,6 +25,7 @@
     "lucide-react": "^0.460.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
+    "react-dropzone": "^20.1.1",
     "react-hook-form": "^7.53.0",
     "react-router-dom": "^6.28.0",
     "tailwind-merge": "^2.6.0",

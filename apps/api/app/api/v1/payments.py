@@ -57,7 +57,7 @@ async def create_order(
 
     order = await payment_service.create_order(
         user_id=str(current_user.id),
-        organization_id=str(current_user.organization_id),
+        organization_id="default",
         plan_type=plan_type,
     )
 
