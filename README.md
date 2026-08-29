@@ -201,6 +201,34 @@ make test-evaluation
 
 See `docs/deployment.md` for production deployment instructions.
 
+## CI/CD Pipeline
+
+The CI pipeline consists of the following jobs:
+
+| Job | Status |
+|-----|--------|
+| Lint & Format | ✅ Ruff linting + format checking |
+| Unit Tests | ✅ pytest with coverage (291 tests) |
+| Security Scan | ✅ Bandit SAST + Safety dependency scan |
+| AI Evaluation | ✅ AI evaluation tests |
+| Docker Build | ⚠️ Builds API/Web images (Dockerfile renamed from `Dockerfile.prod`) |
+
+**Recent fixes:**
+- Renamed `apps/api/Dockerfile.prod` → `apps/api/Dockerfile` and `apps/web/Dockerfile.prod` → `apps/web/Dockerfile` to match workflow references
+- Added `pip install -r apps/api/requirements.txt` to test/evaluation jobs (API dependencies: SQLAlchemy, etc.)
+- Added `pip install aiosqlite` for async test database support
+- Added `pip install email-validator` for pydantic email validation
+- Updated deployment tests to reference `Dockerfile` instead of `Dockerfile.prod`
+
+## Local Development
+
+### Prerequisites
+
+- Python 3.11+
+- Node.js 20+
+- Docker & Docker Compose
+- Git
+
 ## Security
 
 - Documents are treated as untrusted input
