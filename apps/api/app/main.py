@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
+from app.core.database import check_database_health
 
 
 @asynccontextmanager
@@ -45,7 +46,15 @@ def create_application() -> FastAPI:
 
     @app.get("/ready")
     async def readiness_check():
-        return {"status": "ready"}
+        db_healthy = await check_database_health()
+        services = {
+            "database": "healthy" if db_healthy else "unhealthy",
+        }
+        all_healthy = db_healthy
+        return {
+            "status": "ready" if all_healthy else "degraded",
+            "services": services,
+        }
 
     return app
 
