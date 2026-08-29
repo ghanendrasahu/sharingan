@@ -45,7 +45,7 @@ jobs:
         run: |
           pip install -r apps/api/requirements.txt
           pip install -e "packages/document_processing[dev]"
-          pip install pytest pytest-cov pytest-asyncio aiosqlite
+          pip install pytest pytest-cov pytest-asyncio aiosqlite email-validator
 
       - name: Run tests
         run: |

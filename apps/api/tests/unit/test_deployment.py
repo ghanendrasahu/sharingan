@@ -15,18 +15,18 @@ def test_prod_compose_exists():
     assert "worker" in compose["services"]
 
 
-def test_api_dockerfile_prod():
+def test_api_dockerfile():
     """Test API production Dockerfile."""
-    with open("apps/api/Dockerfile.prod") as f:
+    with open("apps/api/Dockerfile") as f:
         content = f.read()
     assert "python:3.11-slim" in content
     assert "HEALTHCHECK" in content
     assert "EXPOSE 8000" in content
 
 
-def test_web_dockerfile_prod():
+def test_web_dockerfile():
     """Test Web production Dockerfile."""
-    with open("apps/web/Dockerfile.prod") as f:
+    with open("apps/web/Dockerfile") as f:
         content = f.read()
     assert "node:22-alpine" in content
     assert "HEALTHCHECK" in content
