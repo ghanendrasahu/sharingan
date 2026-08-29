@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Annotated
 
 from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.schemas.search import (
@@ -25,12 +26,14 @@ if TYPE_CHECKING:
 
 router = APIRouter(prefix="/search", tags=["search"])
 
+DbSession = Annotated[AsyncSession, Depends(get_db)]
+
 
 @router.post("/semantic", response_model=SemanticSearchResponse)
 async def semantic_search(
     request: SemanticSearchRequest,
     current_user: CurrentUser,
-    db: Depends(get_db),
+    db: DbSession,
 ) -> SemanticSearchResponse:
     """Semantic search across all documents.
 
@@ -61,7 +64,7 @@ async def semantic_search(
 async def search_clauses(
     request: ClauseSearchRequest,
     current_user: CurrentUser,
-    db: Depends(get_db),
+    db: DbSession,
 ) -> ClauseSearchResponse:
     """Search for similar clauses.
 
@@ -91,7 +94,7 @@ async def search_clauses(
 async def search_documents(
     request: DocumentSearchRequest,
     current_user: CurrentUser,
-    db: Depends(get_db),
+    db: DbSession,
 ) -> DocumentSearchResponse:
     """Search across documents.
 
@@ -120,7 +123,7 @@ async def search_documents(
 async def index_document(
     request: IndexDocumentRequest,
     current_user: CurrentUser,
-    db: Depends(get_db),
+    db: DbSession,
 ) -> IndexDocumentResponse:
     """Index a document for semantic search.
 

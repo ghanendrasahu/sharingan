@@ -73,7 +73,7 @@ class WebhookRequest(BaseModel):
     """Razorpay webhook request."""
 
     event: str
-    payload: dict
+    payload: dict[str, str | dict]
     created_at: int | None = None
 
 

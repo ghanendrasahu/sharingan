@@ -50,7 +50,7 @@ class ReportDetailResponse(BaseModel):
     executive_summary: str = ""
     sections: list[ReportSectionResponse] = Field(default_factory=list)
     risk_summary: RiskSummaryResponse | None = None
-    key_terms: list[dict] = Field(default_factory=list)
+    key_terms: list[dict[str, str]] = Field(default_factory=list)
     recommendations: list[str] = Field(default_factory=list)
     generated_at: str
     generated_by: str = "LegalLens AI"

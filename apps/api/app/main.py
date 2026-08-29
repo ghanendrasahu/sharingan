@@ -11,7 +11,7 @@ from app.core.database import check_database_health
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> None:
     """Application lifespan events."""
     # Startup
     yield
@@ -45,11 +45,11 @@ def create_application() -> FastAPI:
 
     # Health checks
     @app.get("/health")
-    async def health_check():
+    async def health_check() -> dict[str, str]:
         return {"status": "healthy", "version": settings.APP_VERSION}
 
     @app.get("/ready")
-    async def readiness_check():
+    async def readiness_check() -> dict[str, str | dict[str, str]]:
         db_healthy = await check_database_health()
         services = {
             "database": "healthy" if db_healthy else "unhealthy",

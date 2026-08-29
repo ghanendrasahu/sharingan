@@ -45,7 +45,7 @@ class TaskInfo:
     completed_at: str | None = None
 
     # Results
-    result: dict | None = None
+    result: dict[str, str | int | float] | None = None
     error: str | None = None
     traceback: str | None = None
 
@@ -54,7 +54,7 @@ class TaskInfo:
     user_id: str | None = None
     organization_id: str | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.created_at:
             self.created_at = datetime.now(tz=UTC).isoformat()
 
@@ -81,7 +81,7 @@ class TaskInfo:
         self.status = TaskStatus.STARTED
         self.started_at = datetime.now(tz=UTC).isoformat()
 
-    def complete(self, result: dict | None = None) -> None:
+    def complete(self, result: dict[str, str | int | float] | None = None) -> None:
         """Mark task as completed."""
         self.status = TaskStatus.COMPLETED
         self.completed_at = datetime.now(tz=UTC).isoformat()
@@ -106,7 +106,7 @@ class TaskInfo:
         if message:
             self.message = message
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, str | float | dict[str, str | int | float] | None]:
         """Convert to dictionary."""
         return {
             "task_id": self.task_id,

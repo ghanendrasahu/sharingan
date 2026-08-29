@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Annotated
 
 from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.schemas.report import (
@@ -24,12 +25,14 @@ if TYPE_CHECKING:
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
+DbSession = Annotated[AsyncSession, Depends(get_db)]
+
 
 @router.post("/generate", response_model=ReportDetailResponse)
 async def generate_report(
     request: ReportGenerateRequest,
     current_user: CurrentUser,
-    db: Depends(get_db),
+    db: DbSession,
 ) -> ReportDetailResponse:
     """Generate an analysis report for a document.
 
@@ -71,7 +74,7 @@ async def generate_report(
 async def list_reports(
     document_id: str,
     current_user: CurrentUser,
-    db: Depends(get_db),
+    db: DbSession,
 ) -> ReportListResponse:
     """List all reports for a document."""
     # TODO: Get actual reports
@@ -87,7 +90,7 @@ async def list_reports(
 async def get_report(
     report_id: str,
     current_user: CurrentUser,
-    db: Depends(get_db),
+    db: DbSession,
 ) -> ReportDetailResponse:
     """Get a specific report by ID."""
     # TODO: Get actual report
@@ -105,7 +108,7 @@ async def get_report(
 async def export_report(
     request: ReportExportRequest,
     current_user: CurrentUser,
-    db: Depends(get_db),
+    db: DbSession,
 ) -> ReportExportResponse:
     """Export report in specified format.
 
@@ -125,7 +128,7 @@ async def export_report(
 async def delete_report(
     report_id: str,
     current_user: CurrentUser,
-    db: Depends(get_db),
+    db: DbSession,
 ) -> ReportDeleteResponse:
     """Delete a report."""
     # TODO: Delete actual report

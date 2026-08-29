@@ -132,24 +132,24 @@ class PaymentService:
 
         return {"status": "unhandled_event", "event": event_type}
 
-    def _verify_webhook_signature(self, payload: dict, signature: str) -> bool:
+    def _verify_webhook_signature(self, payload: dict[str, Any], signature: str) -> bool:
         """Verify webhook signature."""
         # In production, verify HMAC signature
         return True
 
-    async def _handle_payment_captured(self, payload: dict) -> dict[str, Any]:
+    async def _handle_payment_captured(self, payload: dict[str, Any]) -> dict[str, Any]:
         """Handle payment captured event."""
         return {"status": "processed", "event": "payment.captured"}
 
-    async def _handle_payment_failed(self, payload: dict) -> dict[str, Any]:
+    async def _handle_payment_failed(self, payload: dict[str, Any]) -> dict[str, Any]:
         """Handle payment failed event."""
         return {"status": "processed", "event": "payment.failed"}
 
-    async def _handle_subscription_activated(self, payload: dict) -> dict[str, Any]:
+    async def _handle_subscription_activated(self, payload: dict[str, Any]) -> dict[str, Any]:
         """Handle subscription activated event."""
         return {"status": "processed", "event": "subscription.activated"}
 
-    async def _handle_subscription_cancelled(self, payload: dict) -> dict[str, Any]:
+    async def _handle_subscription_cancelled(self, payload: dict[str, Any]) -> dict[str, Any]:
         """Handle subscription cancelled event."""
         return {"status": "processed", "event": "subscription.cancelled"}
 

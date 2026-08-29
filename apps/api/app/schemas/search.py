@@ -10,7 +10,7 @@ class SemanticSearchRequest(BaseModel):
 
     query: str = Field(..., min_length=1, max_length=1000, description="Search query")
     top_k: int = Field(default=10, ge=1, le=100, description="Number of results")
-    filters: dict | None = Field(default=None, description="Search filters")
+    filters: dict[str, str] | None = Field(default=None, description="Search filters")
     include_metadata: bool = Field(default=True, description="Include metadata in results")
 
 
@@ -40,7 +40,7 @@ class SearchHit(BaseModel):
     document_id: str | None = None
     clause_id: str | None = None
     page_number: int | None = None
-    metadata: dict = Field(default_factory=dict)
+    metadata: dict[str, str] = Field(default_factory=dict)
     highlights: list[str] = Field(default_factory=list)
 
 

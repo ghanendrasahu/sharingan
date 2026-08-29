@@ -111,7 +111,7 @@ class Subscription:
     cancelled_at: str | None = None
     razorpay_subscription_id: str | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.started_at:
             self.started_at = datetime.now(tz=UTC).isoformat()
 
@@ -137,7 +137,7 @@ class Subscription:
         """Add credits to subscription."""
         self.credits_remaining += amount
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, str | int | float | None]:
         """Convert to dictionary."""
         return {
             "subscription_id": self.subscription_id,
@@ -168,7 +168,7 @@ class Payment:
     created_at: str = ""
     completed_at: str | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.created_at:
             self.created_at = datetime.now(tz=UTC).isoformat()
 
@@ -183,7 +183,7 @@ class Payment:
         """Mark payment as failed."""
         self.status = PaymentStatus.FAILED
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, str | int | float]:
         """Convert to dictionary."""
         return {
             "payment_id": self.payment_id,

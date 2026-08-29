@@ -13,7 +13,9 @@ class AnalysisRequest(BaseModel):
         default="full_analysis",
         description="Type of analysis: risk_assessment, summarization, full_analysis",
     )
-    options: dict | None = Field(default=None, description="Additional analysis options")
+    options: dict[str, str | bool | int | float] | None = Field(
+        default=None, description="Additional analysis options"
+    )
 
 
 class AnalysisStatusResponse(BaseModel):
@@ -75,8 +77,8 @@ class ReportResponse(BaseModel):
     report_type: str
     title: str = ""
     executive_summary: str = ""
-    risk_summary: dict | None = None
-    sections: list[dict] = Field(default_factory=list)
+    risk_summary: dict[str, str | float | int] | None = None
+    sections: list[dict[str, str]] = Field(default_factory=list)
     generated_at: str
 
 
@@ -92,7 +94,7 @@ class SearchRequest(BaseModel):
 
     query: str = Field(..., min_length=1, description="Search query")
     top_k: int = Field(default=10, ge=1, le=100, description="Number of results")
-    filters: dict | None = Field(default=None, description="Search filters")
+    filters: dict[str, str] | None = Field(default=None, description="Search filters")
 
 
 class SearchResultResponse(BaseModel):
@@ -102,7 +104,7 @@ class SearchResultResponse(BaseModel):
     score: float
     document_id: str | None = None
     clause_id: str | None = None
-    metadata: dict = Field(default_factory=dict)
+    metadata: dict[str, str] = Field(default_factory=dict)
 
 
 class SearchResponse(BaseModel):

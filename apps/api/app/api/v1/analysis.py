@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Annotated
 
 from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.schemas.analysis import (
@@ -24,12 +25,14 @@ if TYPE_CHECKING:
 
 router = APIRouter(prefix="/analysis", tags=["analysis"])
 
+DbSession = Annotated[AsyncSession, Depends(get_db)]
+
 
 @router.post("/analyze", response_model=AnalysisStatusResponse)
 async def start_analysis(
     request: AnalysisRequest,
     current_user: CurrentUser,
-    db: Depends(get_db),
+    db: DbSession,
 ) -> AnalysisStatusResponse:
     """Start document analysis.
 
@@ -78,7 +81,7 @@ async def get_analysis_status(
 async def get_analysis_result(
     document_id: str,
     current_user: CurrentUser,
-    db: Depends(get_db),
+    db: DbSession,
 ) -> AnalysisResultResponse:
     """Get analysis result for a document.
 
@@ -123,7 +126,7 @@ async def get_analysis_result(
 async def generate_report(
     document_id: str,
     current_user: CurrentUser,
-    db: Depends(get_db),
+    db: DbSession,
 ) -> ReportResponse:
     """Generate analysis report for a document.
 
@@ -154,7 +157,7 @@ async def generate_report(
 async def search_documents(
     request: SearchRequest,
     current_user: CurrentUser,
-    db: Depends(get_db),
+    db: DbSession,
 ) -> SearchResponse:
     """Semantic search across documents.
 
