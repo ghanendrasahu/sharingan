@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
@@ -26,6 +27,10 @@ from app.services.storage import (
     generate_storage_key,
     upload_file,
 )
+from app.services.validation import (
+    DocumentValidationError,
+    validate_document,
+)
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -35,13 +40,7 @@ if TYPE_CHECKING:
 router = APIRouter(prefix="/documents", tags=["Documents"])
 settings = get_settings()
 
-# Allowed MIME types
-ALLOWED_MIME_TYPES = {
-    "application/pdf",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-}
-
-# Allowed extensions
+# Allowed extensions (for quick check before full validation)
 ALLOWED_EXTENSIONS = {".pdf", ".docx"}
 
 
@@ -59,15 +58,16 @@ async def upload_document(
     ),
     db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> Document:
-    """Upload a document to the organization."""
-    # Validate file extension
+    """Upload a document to the organization.
+
+    Validates file type, signature, and size before upload.
+    """
+    # Quick extension check
     if not file.filename:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Filename is required",
         )
-
-    from pathlib import Path
 
     ext = Path(file.filename).suffix.lower()
     if ext not in ALLOWED_EXTENSIONS:
@@ -76,23 +76,29 @@ async def upload_document(
             detail=f"File type not allowed. Allowed: {', '.join(ALLOWED_EXTENSIONS)}",
         )
 
-    # Validate content type
-    if file.content_type and file.content_type not in ALLOWED_MIME_TYPES:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Content type not allowed: {file.content_type}",
-        )
-
     # Read file content
     content = await file.read()
 
-    # Validate file size
+    # Validate file size early
     max_size = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024
     if len(content) > max_size:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail=f"File too large. Maximum size: {settings.MAX_UPLOAD_SIZE_MB}MB",
         )
+
+    # Full validation (signature, content type, page count)
+    try:
+        validation_result = validate_document(
+            data=content,
+            filename=file.filename,
+            content_type=file.content_type,
+        )
+    except DocumentValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=e.detail,
+        ) from e
 
     # Ensure bucket exists
     ensure_bucket_exists()
@@ -101,7 +107,7 @@ async def upload_document(
     storage_key = generate_storage_key(
         organization_id=str(organization_id),
         filename=file.filename,
-        content_type=file.content_type,
+        content_type=validation_result["content_type"],
     )
 
     # Calculate file hash
@@ -119,7 +125,7 @@ async def upload_document(
     upload_result = await upload_file(
         data=content,
         storage_key=storage_key,
-        content_type=file.content_type or "application/octet-stream",
+        content_type=validation_result["content_type"],
         metadata={
             "organization_id": str(organization_id),
             "uploaded_by": str(current_user.id),
@@ -135,9 +141,10 @@ async def upload_document(
         original_filename=file.filename,
         storage_key=storage_key,
         file_size=upload_result["size"],
-        content_type=upload_result["content_type"],
+        content_type=validation_result["content_type"],
         file_hash=file_hash,
         status=DocumentStatus.UPLOADED,
+        page_count=validation_result.get("page_count"),
     )
     db.add(document)
     await db.flush()
