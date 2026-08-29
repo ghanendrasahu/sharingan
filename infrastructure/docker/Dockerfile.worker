@@ -1,0 +1,36 @@
+# Multi-stage build for LegalLens India Worker
+FROM python:3.11-slim AS base
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        libpq-dev \
+        curl && \
+    rm -rf /var/lib/apt/lists/*
+
+FROM base AS deps
+
+COPY apps/api/pyproject.toml .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -e ".[dev]" 2>/dev/null || \
+    pip install --no-cache-dir fastapi pydantic pydantic-settings \
+        sqlalchemy alembic asyncpg psycopg2-binary redis celery[redis] \
+        python-jose[cryptography] passlib[bcrypt] httpx structlog boto3
+
+FROM base AS production
+
+COPY --from=deps /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=deps /usr/local/bin /usr/local/bin
+
+COPY apps/api/app ./app
+COPY workers ./workers
+
+RUN useradd --create-home --shell /bin/bash legallens
+USER legallens
+
+CMD ["celery", "-A", "app.tasks.celery_app", "worker", "--loglevel=info", "--concurrency=2"]
