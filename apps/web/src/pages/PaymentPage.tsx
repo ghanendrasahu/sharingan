@@ -1,14 +1,19 @@
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { CreditCard, Settings } from "lucide-react";
+import { CreditCard, Settings, BarChart3, ArrowUpDown } from "lucide-react";
 import { PlanSelector } from "../components/PlanSelector";
 import { SubscriptionManager } from "../components/SubscriptionManager";
 import { PaymentCheckout } from "../components/PaymentCheckout";
+import { UsageDisplay } from "../components/UsageDisplay";
+import { PlanUpgrade } from "../components/PlanUpgrade";
+import { SubscriptionStatus } from "../components/SubscriptionStatus";
 
 const queryClient = new QueryClient();
 
 export function PaymentPage() {
-  const [activeTab, setActiveTab] = useState<"plans" | "subscription">("plans");
+  const [activeTab, setActiveTab] = useState<
+    "plans" | "subscription" | "usage" | "upgrade"
+  >("plans");
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [showCheckout, setShowCheckout] = useState(false);
 
@@ -30,11 +35,11 @@ export function PaymentPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Subscription & Billing</h1>
           <p className="text-muted-foreground mt-2">
-            Manage your subscription and billing preferences.
+            Manage your subscription, usage, and billing preferences.
           </p>
         </div>
 
-        <div className="flex gap-4 mb-6">
+        <div className="flex flex-wrap gap-4 mb-6">
           <TabButton
             active={activeTab === "plans"}
             onClick={() => setActiveTab("plans")}
@@ -47,9 +52,21 @@ export function PaymentPage() {
             icon={<Settings className="h-4 w-4" />}
             label="My Subscription"
           />
+          <TabButton
+            active={activeTab === "usage"}
+            onClick={() => setActiveTab("usage")}
+            icon={<BarChart3 className="h-4 w-4" />}
+            label="Usage"
+          />
+          <TabButton
+            active={activeTab === "upgrade"}
+            onClick={() => setActiveTab("upgrade")}
+            icon={<ArrowUpDown className="h-4 w-4" />}
+            label="Upgrade/Downgrade"
+          />
         </div>
 
-        {activeTab === "plans" ? (
+        {activeTab === "plans" && (
           <div className="space-y-6">
             {showCheckout && selectedPlan ? (
               <PaymentCheckout
@@ -67,9 +84,18 @@ export function PaymentPage() {
               />
             )}
           </div>
-        ) : (
-          <SubscriptionManager />
         )}
+
+        {activeTab === "subscription" && (
+          <div className="space-y-6">
+            <SubscriptionManager />
+            <SubscriptionStatus />
+          </div>
+        )}
+
+        {activeTab === "usage" && <UsageDisplay />}
+
+        {activeTab === "upgrade" && <PlanUpgrade currentPlan="free" />}
       </div>
     </QueryClientProvider>
   );
