@@ -21,13 +21,13 @@ class StructuredFormatter(logging.Formatter):
         }
 
         if hasattr(record, "request_id"):
-            log_entry["request_id"] = record.request_id
+            log_entry["request_id"] = record.request_id  # type: ignore[attr-defined]
 
         if hasattr(record, "user_id"):
-            log_entry["user_id"] = record.user_id
+            log_entry["user_id"] = record.user_id  # type: ignore[attr-defined]
 
         if hasattr(record, "organization_id"):
-            log_entry["organization_id"] = record.organization_id
+            log_entry["organization_id"] = record.organization_id  # type: ignore[attr-defined]
 
         if record.exc_info:
             log_entry["exception"] = {
@@ -37,7 +37,7 @@ class StructuredFormatter(logging.Formatter):
             }
 
         if hasattr(record, "extra_data"):
-            log_entry["extra"] = record.extra_data
+            log_entry["extra"] = record.extra_data  # type: ignore[attr-defined]
 
         return json.dumps(log_entry, default=str)
 
