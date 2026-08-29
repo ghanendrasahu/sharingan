@@ -91,8 +91,8 @@ async def upload_document(
     try:
         validation_result = validate_document(
             data=content,
-            filename=file.filename,
-            content_type=file.content_type,
+            filename=file.filename or "document",
+            content_type=file.content_type or "application/octet-stream",
         )
     except DocumentValidationError as e:
         raise HTTPException(
@@ -106,8 +106,8 @@ async def upload_document(
     # Generate storage key
     storage_key = generate_storage_key(
         organization_id=str(organization_id),
-        filename=file.filename,
-        content_type=validation_result["content_type"],
+        filename=file.filename or "document",
+        content_type=str(validation_result.get("content_type", "application/octet-stream")),
     )
 
     # Calculate file hash
@@ -125,11 +125,11 @@ async def upload_document(
     upload_result = await upload_file(
         data=content,
         storage_key=storage_key,
-        content_type=validation_result["content_type"],
+        content_type=str(validation_result.get("content_type", "application/octet-stream")),
         metadata={
             "organization_id": str(organization_id),
             "uploaded_by": str(current_user.id),
-            "original_filename": file.filename,
+            "original_filename": file.filename or "document",
         },
     )
 

@@ -1,5 +1,6 @@
 """LegalLens India API - Production entry point."""
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -11,7 +12,7 @@ from app.core.database import check_database_health
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> None:
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan events."""
     # Startup
     yield

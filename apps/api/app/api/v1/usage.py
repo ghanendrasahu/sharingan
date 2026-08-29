@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy import select
 
+from app.core.database import get_db
+from app.models.organization import OrganizationMember
 from app.models.usage import UsageType
 from app.schemas.usage import (
     CheckLimitRequest,
@@ -18,17 +21,37 @@ from app.schemas.usage import (
 from app.services.usage import usage_service
 
 if TYPE_CHECKING:
-    from app.api.deps import CurrentUser
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import CurrentUser  # noqa: TC001
 
 router = APIRouter(prefix="/usage", tags=["usage"])
+
+
+async def _get_organization_id(
+    current_user: CurrentUser,
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+) -> str:
+    """Get the user's organization ID from their membership."""
+    result = await db.execute(
+        select(OrganizationMember).where(
+            OrganizationMember.user_id == current_user.id,
+        )
+    )
+    membership = result.scalar_one_or_none()
+    if membership is None:
+        return str(current_user.id)
+    return str(membership.organization_id)
 
 
 @router.get("/overview", response_model=UsageOverviewResponse)
 async def get_usage_overview(
     current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
 ) -> UsageOverviewResponse:
     """Get current usage overview for the organization."""
-    summary = await usage_service.get_usage_summary(str(current_user.organization_id))
+    org_id = await _get_organization_id(current_user, db)
+    summary = await usage_service.get_usage_summary(org_id)
 
     usage_responses = []
     for usage_type_str, _total in summary.items():
@@ -39,7 +62,7 @@ async def get_usage_overview(
 
         _is_allowed, current, limit = await usage_service.check_usage_limit(
             str(current_user.id),
-            str(current_user.organization_id),
+            org_id,
             usage_type,
             "free",  # TODO: Get from subscription
         )
@@ -54,7 +77,7 @@ async def get_usage_overview(
         )
 
     return UsageOverviewResponse(
-        organization_id=str(current_user.organization_id),
+        organization_id=org_id,
         plan_type="free",
         usage=usage_responses,
     )
@@ -64,8 +87,11 @@ async def get_usage_overview(
 async def record_usage(
     request: RecordUsageRequest,
     current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
 ) -> RecordUsageResponse:
     """Record usage for the current user."""
+    org_id = await _get_organization_id(current_user, db)
+
     try:
         usage_type = UsageType(request.usage_type)
     except ValueError:
@@ -73,7 +99,7 @@ async def record_usage(
 
     record = await usage_service.record_usage(
         user_id=str(current_user.id),
-        organization_id=str(current_user.organization_id),
+        organization_id=org_id,
         usage_type=usage_type,
         quantity=request.quantity,
         metadata=request.metadata,
@@ -88,11 +114,14 @@ async def record_usage(
 
 
 @router.post("/check-limit", response_model=CheckLimitResponse)
-async def check_usage_limit(
+async def check_usage_limit_endpoint(
     request: CheckLimitRequest,
     current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
 ) -> CheckLimitResponse:
     """Check if user has exceeded usage limit."""
+    org_id = await _get_organization_id(current_user, db)
+
     try:
         usage_type = UsageType(request.usage_type)
     except ValueError:
@@ -100,7 +129,7 @@ async def check_usage_limit(
 
     is_allowed, current, limit = await usage_service.check_usage_limit(
         str(current_user.id),
-        str(current_user.organization_id),
+        org_id,
         usage_type,
         "free",  # TODO: Get from subscription
     )

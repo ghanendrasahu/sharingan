@@ -98,7 +98,7 @@ async def upload_file(
     """Upload a file to object storage."""
     client = get_s3_client()
 
-    extra_args = {
+    extra_args: dict[str, Any] = {
         "ContentType": content_type,
     }
     if metadata:
