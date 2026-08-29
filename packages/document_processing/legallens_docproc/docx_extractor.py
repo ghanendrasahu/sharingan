@@ -48,14 +48,16 @@ def extract_docx_text(docx_data: bytes) -> DOCXExtractionResult:
         for i, para in enumerate(doc.paragraphs):
             if para.text.strip():
                 # Detect heading style
-                is_heading = para.style and para.style.name.startswith("Heading")
+                is_heading = False
                 heading_level = None
-                if is_heading and para.style.name:
-                    import re
+                if para.style and para.style.name:
+                    is_heading = para.style.name.startswith("Heading")
+                    if is_heading:
+                        import re
 
-                    match = re.search(r"Heading\s*(\d)", para.style.name)
-                    if match:
-                        heading_level = int(match.group(1))
+                        match = re.search(r"Heading\s*(\d)", para.style.name)
+                        if match:
+                            heading_level = int(match.group(1))
 
                 paragraphs.append(
                     DOCXParagraph(
