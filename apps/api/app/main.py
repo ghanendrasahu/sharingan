@@ -9,6 +9,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1 import api_router
 from app.core.config import get_settings
 from app.core.database import check_database_health
+from app.middleware.security import (
+    InputSanitizationMiddleware,
+    RateLimitMiddleware,
+    SecurityHeadersMiddleware,
+)
 
 
 @asynccontextmanager
@@ -40,6 +45,11 @@ def create_application() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # Security middleware
+    app.add_middleware(SecurityHeadersMiddleware)
+    app.add_middleware(RateLimitMiddleware, max_requests=100, window_seconds=60)
+    app.add_middleware(InputSanitizationMiddleware)
 
     # Include API routes
     app.include_router(api_router, prefix=settings.API_V1_PREFIX)
