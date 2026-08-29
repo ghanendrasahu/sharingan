@@ -1,6 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AppLayout } from "./components/AppLayout";
+import { ProtectedRoute, PublicRoute } from "./components/ProtectedRoute";
+import { LoginPage } from "./pages/LoginPage";
+import { RegisterPage } from "./pages/RegisterPage";
 import { DocumentsPage } from "./pages/DocumentsPage";
 import { AnalysisPage } from "./pages/AnalysisPage";
 import { SearchPage } from "./pages/SearchPage";
@@ -22,7 +25,11 @@ function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard title="Documents" value="0" description="Uploaded documents" />
         <StatCard title="Analyses" value="0" description="Completed analyses" />
-        <StatCard title="Risks Found" value="0" description="Total risks identified" />
+        <StatCard
+          title="Risks Found"
+          value="0"
+          description="Total risks identified"
+        />
         <StatCard title="Credits" value="5" description="Credits remaining" />
       </div>
 
@@ -62,13 +69,22 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
-          <Route element={<AppLayout />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/documents" element={<DocumentsPage />} />
-            <Route path="/analysis" element={<AnalysisPage />} />
-            <Route path="/search" element={<SearchPage />} />
-            <Route path="/subscription" element={<PaymentPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
+          {/* Public routes */}
+          <Route element={<PublicRoute />}>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+          </Route>
+
+          {/* Protected routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/documents" element={<DocumentsPage />} />
+              <Route path="/analysis" element={<AnalysisPage />} />
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="/subscription" element={<PaymentPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+            </Route>
           </Route>
         </Routes>
       </BrowserRouter>
