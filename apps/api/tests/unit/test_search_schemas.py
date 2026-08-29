@@ -65,6 +65,7 @@ def test_document_search_request_with_ids():
         query="payment terms",
         document_ids=["doc_1", "doc_2"],
     )
+    assert request.document_ids is not None
     assert len(request.document_ids) == 2
 
 

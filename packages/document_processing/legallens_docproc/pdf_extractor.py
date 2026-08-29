@@ -49,7 +49,8 @@ def extract_pdf_text(pdf_data: bytes) -> PDFExtractionResult:
 
         for page_num in range(len(doc)):
             page = doc.load_page(page_num)
-            text = page.get_text("text")
+            text_result = page.get_text("text")
+            text = str(text_result) if text_result else ""
             pages.append(
                 PDFPage(
                     page_number=page_num + 1,

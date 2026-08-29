@@ -280,7 +280,7 @@ class PGVectorStore(VectorStore):
                 query += " WHERE " + " AND ".join(conditions)
 
         query += f" ORDER BY similarity DESC LIMIT ${len(params) + 1}"
-        params.append(top_k)
+        params.append(str(top_k))
 
         async with pool.acquire() as conn:
             rows = await conn.fetch(query, *params)

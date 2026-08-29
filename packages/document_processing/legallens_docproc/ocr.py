@@ -59,10 +59,11 @@ class TesseractOCR(OCRProvider):
             )
         except ImportError:
             return OCRResult(
-                error="Tesseract not installed. Install with: pip install pytesseract pillow"
+                text="",
+                error="Tesseract not installed. Install with: pip install pytesseract pillow",
             )
         except Exception as e:
-            return OCRResult(error=f"Tesseract OCR failed: {e!s}")
+            return OCRResult(text="", error=f"Tesseract OCR failed: {e!s}")
 
     def is_available(self) -> bool:
         """Check if Tesseract is available."""

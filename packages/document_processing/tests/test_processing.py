@@ -75,6 +75,7 @@ def test_process_document_unknown_format():
         content=b"content",
     )
     assert result.success is False
+    assert result.error is not None
     assert "Unsupported" in result.error
 
 

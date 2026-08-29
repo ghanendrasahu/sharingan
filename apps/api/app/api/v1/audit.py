@@ -72,7 +72,7 @@ async def get_audit_logs(
     parsed_severity = AuditSeverity(severity) if severity else None
 
     filter_obj = AuditLogFilter(
-        organization_id=organization_id or current_user.organization_id,
+        organization_id=organization_id,
         event_types=parsed_event_types,
         severity=parsed_severity,
     )
@@ -106,7 +106,7 @@ async def get_security_summary(
     organization_id: str | None = Query(None),
 ) -> SecuritySummaryResponse:
     """Get security summary for an organization."""
-    summary = audit_service.get_security_summary(organization_id or current_user.organization_id)
+    summary = audit_service.get_security_summary(organization_id)
 
     return SecuritySummaryResponse(
         total_events=summary["total_events"],
@@ -124,7 +124,7 @@ async def get_high_risk_logs(
 ) -> list[dict[str, Any]]:
     """Get high-risk audit logs."""
     logs = audit_service.get_high_risk_logs(
-        organization_id=organization_id or current_user.organization_id,
+        organization_id=organization_id,
         limit=limit,
     )
     return [log.to_dict() for log in logs]

@@ -28,6 +28,7 @@ def test_report_generate_request_with_sections():
         include_sections=["summary", "risks"],
     )
     assert request.report_type == "risk_assessment"
+    assert request.include_sections is not None
     assert len(request.include_sections) == 2
 
 

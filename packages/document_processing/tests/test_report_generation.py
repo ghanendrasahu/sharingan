@@ -244,6 +244,7 @@ def test_risk_summary_calculation():
         analysis_result=analysis,
     )
 
+    assert report.risk_summary is not None
     assert report.risk_summary.critical_count == 1
     assert report.risk_summary.high_count == 1
     assert report.risk_summary.medium_count == 1
