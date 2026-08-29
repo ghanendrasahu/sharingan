@@ -76,6 +76,8 @@ class WebhookRequest(BaseModel):
     payload: dict[str, str | dict]
     created_at: int | None = None
 
+    model_config = {"extra": "allow"}
+
 
 class WebhookResponse(BaseModel):
     """Webhook processing response."""

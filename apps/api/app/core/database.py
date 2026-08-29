@@ -2,7 +2,7 @@
 
 from collections.abc import AsyncGenerator
 
-from sqlalchemy import MetaData
+from sqlalchemy import MetaData, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
@@ -59,7 +59,7 @@ async def check_database_health() -> bool:
     try:
         async with engine.connect() as conn:
             await conn.execute(
-                __import__("sqlalchemy").text("SELECT 1"),
+                text("SELECT 1"),
             )
         return True
     except Exception:

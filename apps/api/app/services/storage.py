@@ -94,7 +94,7 @@ async def upload_file(
     storage_key: str,
     content_type: str = "application/octet-stream",
     metadata: dict[str, str] | None = None,
-) -> dict:
+) -> dict[str, Any]:
     """Upload a file to object storage."""
     client = get_s3_client()
 

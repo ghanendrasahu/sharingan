@@ -71,7 +71,7 @@ async def register(
 async def login(
     request: LoginRequest,
     db: AsyncSession = Depends(get_db),  # noqa: B008
-) -> dict:
+) -> dict[str, str | int]:
     """Login and get access/refresh tokens."""
     result = await db.execute(select(User).where(User.email == request.email))
     user = result.scalar_one_or_none()
@@ -106,7 +106,7 @@ async def login(
 async def refresh_token(
     request: RefreshRequest,
     db: AsyncSession = Depends(get_db),  # noqa: B008
-) -> dict:
+) -> dict[str, str | int]:
     """Refresh access token using refresh token."""
     user_id = get_user_id_from_token(request.refresh_token)
     if user_id is None:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 from sqlalchemy import select
@@ -166,7 +166,7 @@ async def list_documents(
     db: AsyncSession = Depends(get_db),  # noqa: B008
     page: int = 1,
     page_size: int = 20,
-) -> dict:
+) -> dict[str, Any]:
     """List documents in the organization."""
     offset = (page - 1) * page_size
 
@@ -241,7 +241,7 @@ async def get_document_download_url(
         RequireRole(MemberRole.OWNER, MemberRole.ADMIN, MemberRole.MEMBER, MemberRole.VIEWER)  # noqa: B008
     ),
     db: AsyncSession = Depends(get_db),  # noqa: B008
-) -> dict:
+) -> dict[str, Any]:
     """Get a presigned URL for downloading the document."""
     result = await db.execute(
         select(Document).where(

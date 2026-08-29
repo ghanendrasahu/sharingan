@@ -115,7 +115,7 @@ def validate_document(
     data: bytes,
     filename: str,
     content_type: str | None = None,
-) -> dict:
+) -> dict[str, str | int | None]:
     """Comprehensive document validation.
 
     Returns validation result with detected metadata.

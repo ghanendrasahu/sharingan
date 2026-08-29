@@ -153,7 +153,7 @@ class PaymentService:
         """Handle subscription cancelled event."""
         return {"status": "processed", "event": "subscription.cancelled"}
 
-    async def _handle_subscription_charged(self, payload: dict) -> dict[str, Any]:
+    async def _handle_subscription_charged(self, payload: dict[str, Any]) -> dict[str, Any]:
         """Handle subscription charged event (renewal)."""
         return {"status": "processed", "event": "subscription.charged"}
 

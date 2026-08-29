@@ -185,7 +185,7 @@ async def search_documents(
 async def cancel_analysis(
     task_id: str,
     current_user: CurrentUser,
-) -> dict:
+) -> dict[str, str]:
     """Cancel a running analysis task."""
     # TODO: Cancel actual task
 

@@ -68,12 +68,12 @@ celery_app.conf.update(
 
 
 @task_prerun.connect
-def task_prerun_handler(sender, **kwargs):
+def task_prerun_handler(sender: str, **kwargs: object) -> None:
     """Handle task start."""
-    print(f"Task {sender.name} starting...")
+    print(f"Task {sender} starting...")
 
 
 @task_postrun.connect
-def task_postrun_handler(sender, **kwargs):
+def task_postrun_handler(sender: str, **kwargs: object) -> None:
     """Handle task completion."""
-    print(f"Task {sender.name} completed.")
+    print(f"Task {sender} completed.")
