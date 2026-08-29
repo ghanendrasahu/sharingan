@@ -17,6 +17,14 @@ from .clause_models import (
     ClauseType,
 )
 from .clause_segmenter import segment_clauses, segment_clauses_async
+from .embedding_models import (
+    EmbeddingBatchResult,
+    EmbeddingResult,
+    SearchResult,
+    VectorDocument,
+    VectorSearchResult,
+)
+from .embedding_service import get_embedding_provider
 from .models import (
     DocumentFormat,
     PageContent,
@@ -26,6 +34,8 @@ from .models import (
     TextBlock,
 )
 from .processor import process_document, process_document_async
+from .semantic_search import SemanticSearchService
+from .vector_store import get_vector_store
 
 __all__ = [
     "AIAnalysisResult",
@@ -37,6 +47,8 @@ __all__ = [
     "ClauseType",
     "DocumentFormat",
     "DocumentSummary",
+    "EmbeddingBatchResult",
+    "EmbeddingResult",
     "KeyTerm",
     "PageContent",
     "ProcessedDocument",
@@ -44,9 +56,15 @@ __all__ = [
     "ProcessingStatus",
     "RiskFinding",
     "RiskSeverity",
+    "SearchResult",
+    "SemanticSearchService",
     "TextBlock",
+    "VectorDocument",
+    "VectorSearchResult",
     "analyze_document_full",
+    "get_embedding_provider",
     "get_llm_provider",
+    "get_vector_store",
     "process_document",
     "process_document_async",
     "segment_clauses",
