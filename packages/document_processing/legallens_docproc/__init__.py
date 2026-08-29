@@ -34,11 +34,26 @@ from .models import (
     TextBlock,
 )
 from .processor import process_document, process_document_async
+from .report_generator import (
+    generate_analysis_report,
+    report_to_html,
+    report_to_json,
+    report_to_markdown,
+)
+from .report_models import (
+    AnalysisReport,
+    DocumentInfo,
+    ReportFormat,
+    ReportSection,
+    ReportType,
+    RiskSummary,
+)
 from .semantic_search import SemanticSearchService
 from .vector_store import get_vector_store
 
 __all__ = [
     "AIAnalysisResult",
+    "AnalysisReport",
     "AnalysisType",
     "Clause",
     "ClauseAnalysis",
@@ -46,6 +61,7 @@ __all__ = [
     "ClauseSegmentationResult",
     "ClauseType",
     "DocumentFormat",
+    "DocumentInfo",
     "DocumentSummary",
     "EmbeddingBatchResult",
     "EmbeddingResult",
@@ -54,19 +70,27 @@ __all__ = [
     "ProcessedDocument",
     "ProcessingResult",
     "ProcessingStatus",
+    "ReportFormat",
+    "ReportSection",
+    "ReportType",
     "RiskFinding",
     "RiskSeverity",
+    "RiskSummary",
     "SearchResult",
     "SemanticSearchService",
     "TextBlock",
     "VectorDocument",
     "VectorSearchResult",
     "analyze_document_full",
+    "generate_analysis_report",
     "get_embedding_provider",
     "get_llm_provider",
     "get_vector_store",
     "process_document",
     "process_document_async",
+    "report_to_html",
+    "report_to_json",
+    "report_to_markdown",
     "segment_clauses",
     "segment_clauses_async",
 ]
