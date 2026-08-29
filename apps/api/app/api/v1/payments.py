@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Request
 
@@ -158,3 +158,13 @@ async def handle_webhook(request: Request) -> WebhookResponse:
             event=payload.get("event", "unknown"),
             message=str(e),
         )
+
+
+@router.get("/history")
+async def get_payment_history(
+    current_user: CurrentUser,
+    limit: int = 10,
+) -> list[dict[str, Any]]:
+    """Get payment history for current user."""
+    payments = await payment_service.get_payment_history(str(current_user.id), limit)
+    return [p.to_dict() for p in payments]
