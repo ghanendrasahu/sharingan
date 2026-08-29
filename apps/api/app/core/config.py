@@ -39,6 +39,14 @@ class Settings(BaseSettings):
     LLM_API_KEY: str = ""
     LLM_MODEL: str = "gpt-4o"
 
+    # Groq
+    GROQ_API_KEY: str = ""
+    # Free tier models (no credit card required)
+    GROQ_MODEL: str = "llama-3.1-8b-instant"  # Best free: 30 RPM, 500K TPD, 30K TPM
+    # Alternative free models:
+    # GROQ_MODEL: str = "llama-3.3-70b-versatile"  # Higher quality, 1K RPD
+    # GROQ_MODEL: str = "llama-4-scout-instruct"  # Long context, 30K TPM
+
     # Embeddings
     EMBEDDING_PROVIDER: str = "openai"
     EMBEDDING_API_KEY: str = ""

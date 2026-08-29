@@ -77,6 +77,41 @@ class OpenAIProvider(LLMProvider):
             raise AIAnalysisError(f"OpenAI API error: {e!s}", code="API_ERROR") from e
 
 
+class GroqProvider(LLMProvider):
+    """Groq LLM provider."""
+
+    def __init__(self, api_key: str, model: str = "mixtral-8x7b-32768") -> None:
+        self.api_key = api_key
+        self.model = model
+
+    async def generate(self, prompt: str, model: str | None = None) -> str:
+        """Generate text using Groq API."""
+        try:
+            from groq import AsyncGroq
+
+            client = AsyncGroq(api_key=self.api_key)
+            response = await client.chat.completions.create(
+                model=model or self.model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a legal AI assistant. Always respond in valid JSON format.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=0.3,
+                max_tokens=4096,
+            )
+            return response.choices[0].message.content or ""
+        except ImportError as err:
+            raise AIAnalysisError(
+                "Groq package not installed. Install with: pip install groq",
+                code="DEPENDENCY_ERROR",
+            ) from err
+        except Exception as e:
+            raise AIAnalysisError(f"Groq API error: {e!s}", code="API_ERROR") from e
+
+
 class MockProvider(LLMProvider):
     """Mock LLM provider for testing."""
 
@@ -101,6 +136,7 @@ def get_llm_provider(
     """Get LLM provider by name."""
     providers = {
         "openai": lambda: OpenAIProvider(api_key=api_key, model=model),
+        "groq": lambda: GroqProvider(api_key=api_key, model=model),
         "mock": MockProvider,
     }
 
