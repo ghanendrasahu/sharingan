@@ -45,6 +45,20 @@ class PaymentService:
         self.razorpay_key_id = settings.RAZORPAY_KEY_ID
         self.razorpay_key_secret = settings.RAZORPAY_KEY_SECRET
         self.webhook_secret = settings.RAZORPAY_WEBHOOK_SECRET
+        self._client = None
+
+    def _get_razorpay_client(self):
+        """Get or create Razorpay client."""
+        if self._client is None and self.razorpay_key_id and self.razorpay_key_secret:
+            try:
+                import razorpay
+
+                self._client = razorpay.Client(
+                    auth=(self.razorpay_key_id, self.razorpay_key_secret)
+                )
+            except ImportError:
+                logger.warning("razorpay package not installed")
+        return self._client
 
     async def create_order(
         self,
@@ -54,13 +68,36 @@ class PaymentService:
     ) -> dict[str, Any]:
         """Create a Razorpay order for subscription."""
         plan = PLANS[plan_type]
-
-        order_id = f"order_{hashlib.md5(f'{user_id}{plan_type}{datetime.now(tz=UTC).isoformat()}'.encode()).hexdigest()[:12]}"
+        amount_paise = int(plan.price_inr * 100)
 
         # Get or create subscription
         subscription = await self._get_or_create_subscription(
             user_id, organization_id, plan_type
         )
+
+        # Try real Razorpay API first
+        client = self._get_razorpay_client()
+        if client and plan.price_inr > 0:
+            try:
+                order = client.order.create(
+                    {
+                        "amount": amount_paise,
+                        "currency": "INR",
+                        "receipt": f"sub_{subscription.id}",
+                        "notes": {
+                            "user_id": user_id,
+                            "organization_id": organization_id,
+                            "plan_type": plan_type.value,
+                        },
+                    }
+                )
+                razorpay_order_id = order.get("id", "")
+            except Exception:
+                logger.exception("Razorpay order creation failed, using mock")
+                razorpay_order_id = f"order_{hashlib.md5(f'{user_id}{plan_type}{datetime.now(tz=UTC).isoformat()}'.encode()).hexdigest()[:12]}"
+        else:
+            # Mock order for free plans or when Razorpay not configured
+            razorpay_order_id = f"order_{hashlib.md5(f'{user_id}{plan_type}{datetime.now(tz=UTC).isoformat()}'.encode()).hexdigest()[:12]}"
 
         # Create payment record
         payment = PaymentRecord(
@@ -69,14 +106,14 @@ class PaymentService:
             organization_id=organization_id,
             amount_inr=plan.price_inr,
             plan_type=plan_type.value,
-            razorpay_order_id=order_id,
+            razorpay_order_id=razorpay_order_id,
         )
         self.db.add(payment)
         await self.db.flush()
 
         return {
-            "order_id": order_id,
-            "amount": int(plan.price_inr * 100),
+            "order_id": razorpay_order_id,
+            "amount": amount_paise,
             "currency": "INR",
             "plan_id": plan.plan_id,
             "plan_name": plan.name,

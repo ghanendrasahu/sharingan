@@ -28,6 +28,7 @@ dependencies = [
     "prometheus-client>=0.21.0",
     "boto3>=1.35.0",
     "mangum>=0.19.0",
+    "razorpay>=2.0.0",
     "legallens-docproc[all] @ file:../../packages/document_processing",
 ]
 
