@@ -57,8 +57,10 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Deploy to staging server
-        if: ${{ secrets.STAGING_HOST != '' }}
+        if: env.STAGING_HOST != ''
         uses: appleboy/ssh-action@v1.0.0
+        env:
+          STAGING_HOST: ${{ secrets.STAGING_HOST }}
         with:
           host: ${{ secrets.STAGING_HOST }}
           username: ${{ secrets.STAGING_USER }}
@@ -112,8 +114,10 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Deploy to production server
-        if: ${{ secrets.PRODUCTION_HOST != '' }}
+        if: env.PRODUCTION_HOST != ''
         uses: appleboy/ssh-action@v1.0.0
+        env:
+          PRODUCTION_HOST: ${{ secrets.PRODUCTION_HOST }}
         with:
           host: ${{ secrets.PRODUCTION_HOST }}
           username: ${{ secrets.PRODUCTION_USER }}
@@ -125,12 +129,12 @@ jobs:
             docker compose exec api python -m alembic upgrade head
 
       - name: Notify deployment
-        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        if: env.SLACK_WEBHOOK_URL != ''
         uses: slackapi/slack-github-action@v1.24.0
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           payload: |
             {
               "text": "Production deployment completed for ${{ github.sha }}"
             }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
