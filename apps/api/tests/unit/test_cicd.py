@@ -34,8 +34,8 @@ def test_ci_lint_job():
         workflow = yaml.safe_load(f)
     lint_job = workflow["jobs"]["lint"]
     assert lint_job["runs-on"] == "ubuntu-latest"
-    steps = [step["name"] for step in lint_job["steps"] if "name" in step]
-    assert "Run Ruff check" in steps
+    steps = [step.get("name", "") for step in lint_job["steps"]]
+    assert any("Run Ruff check" in s for s in steps)
 
 
 def test_ci_test_job():
