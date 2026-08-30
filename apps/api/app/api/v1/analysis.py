@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,6 +26,8 @@ from app.tasks.analysis import analyze_document_task
 
 if TYPE_CHECKING:
     from app.api.deps import CurrentUser
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/analysis", tags=["analysis"])
 
@@ -296,3 +300,141 @@ async def cancel_analysis(
     celery_app.control.revoke(task_id, terminate=True, signal="SIGTERM")
 
     return {"message": f"Task {task_id} cancelled", "task_id": task_id}
+
+
+class QuestionRequest(BaseModel):
+    """Request to ask a question about a document."""
+
+    question: str = Field(..., min_length=1, description="Question about the document")
+
+
+class CitationResponse(BaseModel):
+    """Citation in answer."""
+
+    clause_id: str
+    clause_type: str
+    text: str
+    confidence: float
+
+
+class AnswerResponse(BaseModel):
+    """Response to document question."""
+
+    question: str
+    answer: str
+    confidence: float
+    citations: list[CitationResponse] = Field(default_factory=list)
+    disclaimer: str = "This is AI-generated analysis, not legal advice."
+
+
+@router.post("/documents/{document_id}/ask", response_model=AnswerResponse)
+async def ask_document_question(
+    document_id: UUID,
+    request: QuestionRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> AnswerResponse:
+    """Ask a question about a document.
+
+    Returns a document-grounded answer with citations to specific clauses.
+    """
+    from app.models.document import DocumentClause, DocumentStatus
+
+    # Verify document exists
+    doc_result = await db.execute(
+        select(Document).where(
+            Document.id == document_id,
+            Document.deleted_at.is_(None),
+        )
+    )
+    document = doc_result.scalar_one_or_none()
+
+    if document is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found",
+        )
+
+    if document.status != DocumentStatus.PROCESSED:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Document must be processed before asking questions",
+        )
+
+    # Get clauses
+    clauses_result = await db.execute(
+        select(DocumentClause)
+        .where(DocumentClause.document_id == document_id)
+        .order_by(DocumentClause.clause_index)
+    )
+    clauses = list(clauses_result.scalars().all())
+
+    if not clauses:
+        return AnswerResponse(
+            question=request.question,
+            answer="No clauses found in this document. The document may not have been properly processed.",
+            confidence=0.0,
+        )
+
+    # Build context from clauses
+    context_parts = []
+    for clause in clauses[:30]:  # Limit to 30 clauses
+        context_parts.append(
+            f"[{clause.clause_type}] (Clause {clause.clause_id}):\n{clause.content[:500]}"
+        )
+    context = "\n\n".join(context_parts)
+
+    # Call LLM for answer
+    prompt = f"""Answer the question based ONLY on the document content provided.
+If the document doesn't contain information to answer, say "I cannot find information about this in the document."
+Always cite which clause(s) you used.
+
+DOCUMENT CLAUSES:
+{context}
+
+QUESTION: {request.question}
+
+Provide:
+1. A direct answer (2-3 sentences max)
+2. Which clause(s) support your answer
+3. Your confidence level (0.0 to 1.0)
+"""
+    try:
+        from app.services.llm import get_llm_client
+
+        llm = get_llm_client()
+        response = await llm.complete(prompt)
+        answer_text = response.get("text", "Unable to generate answer")
+        confidence = response.get("confidence", 0.5)
+
+        # Find relevant citations
+        citations = []
+        for clause in clauses:
+            if any(
+                keyword in clause.content.lower()
+                for keyword in request.question.lower().split()
+                if len(keyword) > 3
+            ):
+                citations.append(
+                    CitationResponse(
+                        clause_id=clause.clause_id,
+                        clause_type=clause.clause_type,
+                        text=clause.content[:200],
+                        confidence=0.7,
+                    )
+                )
+                if len(citations) >= 3:
+                    break
+
+    except Exception:
+        logger.exception("Q&A LLM call failed")
+        answer_text = "I'm unable to answer this question right now. Please try again later."
+        confidence = 0.0
+        citations = []
+
+    return AnswerResponse(
+        question=request.question,
+        answer=answer_text,
+        confidence=confidence,
+        citations=citations,
+    )
