@@ -11,6 +11,7 @@ from app.models.document import (
     DocumentVersion,
 )
 from app.models.organization import MemberRole, Organization, OrganizationMember
+from app.models.report import Report, ReportStatus
 from app.models.user import User, UserRole
 
 __all__ = [
@@ -27,6 +28,8 @@ __all__ = [
     "MemberRole",
     "Organization",
     "OrganizationMember",
+    "Report",
+    "ReportStatus",
     "User",
     "UserRole",
 ]
