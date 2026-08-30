@@ -5,8 +5,10 @@ from __future__ import annotations
 from datetime import UTC
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from app.api.deps import CurrentUser, RequireRole
@@ -33,8 +35,6 @@ from app.services.validation import (
 )
 
 if TYPE_CHECKING:
-    from uuid import UUID
-
     from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
@@ -295,3 +295,161 @@ async def delete_document(
 
     document.deleted_at = datetime.now(UTC)
     await db.flush()
+
+
+class CompareRequest(BaseModel):
+    """Request to compare two document versions."""
+
+    document_id_a: str = Field(..., description="First document ID")
+    document_id_b: str = Field(..., description="Second document ID")
+
+
+class ClauseDiff(BaseModel):
+    """Difference in a clause between versions."""
+
+    clause_type: str
+    status: str  # added, removed, modified, unchanged
+    content_a: str | None = None
+    content_b: str | None = None
+    summary: str = ""
+
+
+class ComparisonResponse(BaseModel):
+    """Response for document comparison."""
+
+    document_id_a: str
+    document_id_b: str
+    summary: str
+    clause_diffs: list[ClauseDiff] = Field(default_factory=list)
+    added_count: int = 0
+    removed_count: int = 0
+    modified_count: int = 0
+    unchanged_count: int = 0
+
+
+@router.post("/compare", response_model=ComparisonResponse)
+async def compare_documents(
+    request: CompareRequest,
+    current_user: CurrentUser,
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+) -> ComparisonResponse:
+    """Compare two document versions.
+
+    Detects added, removed, modified, and unchanged clauses between two documents.
+    """
+    from app.models.document import DocumentClause, DocumentStatus
+
+    doc_id_a = UUID(request.document_id_a)
+    doc_id_b = UUID(request.document_id_b)
+
+    # Get both documents
+    result_a = await db.execute(
+        select(Document).where(
+            Document.id == doc_id_a,
+            Document.deleted_at.is_(None),
+        )
+    )
+    doc_a = result_a.scalar_one_or_none()
+
+    result_b = await db.execute(
+        select(Document).where(
+            Document.id == doc_id_b,
+            Document.deleted_at.is_(None),
+        )
+    )
+    doc_b = result_b.scalar_one_or_none()
+
+    if doc_a is None or doc_b is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="One or both documents not found",
+        )
+
+    if doc_a.status != DocumentStatus.PROCESSED or doc_b.status != DocumentStatus.PROCESSED:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Both documents must be processed before comparison",
+        )
+
+    # Get clauses for both documents
+    clauses_a_result = await db.execute(
+        select(DocumentClause)
+        .where(DocumentClause.document_id == doc_id_a)
+        .order_by(DocumentClause.clause_type, DocumentClause.clause_index)
+    )
+    clauses_a = {c.clause_type: c for c in clauses_a_result.scalars().all()}
+
+    clauses_b_result = await db.execute(
+        select(DocumentClause)
+        .where(DocumentClause.document_id == doc_id_b)
+        .order_by(DocumentClause.clause_type, DocumentClause.clause_index)
+    )
+    clauses_b = {c.clause_type: c for c in clauses_b_result.scalars().all()}
+
+    # Compare clauses
+    all_types = set(clauses_a.keys()) | set(clauses_b.keys())
+    diffs: list[ClauseDiff] = []
+    added = removed = modified = unchanged = 0
+
+    for clause_type in sorted(all_types):
+        clause_a = clauses_a.get(clause_type)
+        clause_b = clauses_b.get(clause_type)
+
+        if clause_a and clause_b:
+            if clause_a.content.strip() == clause_b.content.strip():
+                unchanged += 1
+            else:
+                modified += 1
+                diffs.append(
+                    ClauseDiff(
+                        clause_type=clause_type,
+                        status="modified",
+                        content_a=clause_a.content[:500],
+                        content_b=clause_b.content[:500],
+                        summary=f"Clause '{clause_type}' was modified between versions",
+                    )
+                )
+        elif clause_a and not clause_b:
+            removed += 1
+            diffs.append(
+                ClauseDiff(
+                    clause_type=clause_type,
+                    status="removed",
+                    content_a=clause_a.content[:500],
+                    summary=f"Clause '{clause_type}' was removed in second version",
+                )
+            )
+        else:
+            added += 1
+            diffs.append(
+                ClauseDiff(
+                    clause_type=clause_type,
+                    status="added",
+                    content_b=clause_b.content[:500] if clause_b else "",
+                    summary=f"Clause '{clause_type}' was added in second version",
+                )
+            )
+
+    # Generate summary
+    if modified == 0 and added == 0 and removed == 0:
+        summary = "Documents are identical in structure and content."
+    else:
+        parts = []
+        if modified:
+            parts.append(f"{modified} clause(s) modified")
+        if added:
+            parts.append(f"{added} clause(s) added")
+        if removed:
+            parts.append(f"{removed} clause(s) removed")
+        summary = f"Comparison complete: {', '.join(parts)}."
+
+    return ComparisonResponse(
+        document_id_a=str(doc_id_a),
+        document_id_b=str(doc_id_b),
+        summary=summary,
+        clause_diffs=diffs,
+        added_count=added,
+        removed_count=removed,
+        modified_count=modified,
+        unchanged_count=unchanged,
+    )
