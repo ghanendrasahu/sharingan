@@ -1,0 +1,25 @@
+{
+  "contract_id": "eval_nda_001",
+  "type": "nda",
+  "title": "Mutual Non-Disclosure Agreement",
+  "content": "This Mutual Non-Disclosure Agreement (\"Agreement\") is entered into as of January 1, 2024 by and between Acme Corp (\"Party A\") and Beta Inc (\"Party B\").\n\n1. DEFINITIONS\n1.1 \"Confidential Information\" means any information disclosed by either party.\n1.2 \"Disclosing Party\" means the party disclosing Confidential Information.\n1.3 \"Receiving Party\" means the party receiving Confidential Information.\n\n2. OBLIGATIONS\n2.1 The Receiving Party shall hold all Confidential Information in strict confidence.\n2.2 The Receiving Party shall not disclose Confidential Information to any third party.\n2.3 The Receiving Party shall use Confidential Information only for evaluation purposes.\n\n3. TERM\n3.1 This Agreement shall remain in effect for 2 years from the Effective Date.\n3.2 Confidential Information obligations survive termination for 3 years.\n\n4. RETURN OF MATERIALS\n4.1 Upon termination, each party shall return all Confidential Information.\n\n5. NO LICENSE\n5.1 Nothing in this Agreement grants any license under any intellectual property rights.\n\n6. GOVERNING LAW\n6.1 This Agreement shall be governed by the laws of India.\n\nIN WITNESS WHEREOF, the parties have executed this Agreement.",
+  "expected_classification": "nda",
+  "expected_risks": [
+    {
+      "title": "No non-compete clause",
+      "severity": "medium",
+      "clause_type": "missing"
+    },
+    {
+      "title": "No dispute resolution mechanism",
+      "severity": "medium",
+      "clause_type": "missing"
+    }
+  ],
+  "expected_missing_clauses": [
+    "non_compete",
+    "dispute_resolution",
+    "intellectual_property_ownership",
+    "force_majeure"
+  ]
+}
