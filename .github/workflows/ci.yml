@@ -43,8 +43,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -e "apps/api[dev]"
           pip install -e "packages/document_processing[dev]"
+          pip install -e "apps/api[dev]"
           pip install pytest pytest-cov pytest-asyncio aiosqlite email-validator
 
       - name: Run tests
