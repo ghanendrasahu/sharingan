@@ -11,14 +11,18 @@ LegalLens India helps startups, freelancers, employees, landlords/tenants, and s
 ## Features
 
 - PDF and DOCX document upload and processing
-- AI-powered contract risk analysis
+- AI-powered contract risk analysis with LangGraph
+- Document classification (NDA, employment, lease, vendor, etc.)
 - Missing clause detection
-- Key obligation extraction
-- Contract Q&A
+- Evidence-based risk analysis with legal citations
+- Deterministic risk scoring (explainable, not LLM-based)
+- Hybrid retrieval (BM25 + vector search)
+- Indian legal corpus (Contract Act, Companies Act, IT Act)
+- Contract Q&A with document-grounded answers
 - Contract version comparison
 - Professional PDF report generation
 - Multi-tenant organization support
-- Usage tracking and billing
+- Usage tracking and billing with Razorpay
 
 ## Architecture
 
@@ -35,17 +39,25 @@ LegalLens India helps startups, freelancers, employees, landlords/tenants, and s
  (pgvector)                                    │
        │                   │                    │
        │                   ▼                    │
-       │                Workers                 │
+       │                Celery Workers          │
        │                   │                    │
        └───────────────────┼────────────────────┘
                            ▼
-                    Document Engine
+                    Document Processing
                            │
                     Clause Segmentation
                            │
-                    LangGraph Engine
+                    LangGraph Analysis Engine
+                    ├── Document Classifier
+                    ├── Risk Analyzer
+                    ├── Missing Clause Detector
+                    ├── Legal Retriever
+                    ├── Evidence Verifier
+                    ├── Risk Scorer
+                    ├── Recommendations
+                    └── Quality Checker
                            │
-                    Legal RAG Engine
+                    Hybrid Retrieval (BM25 + Vector)
                            │
                     Indian Legal Corpus
 ```
@@ -56,12 +68,21 @@ LegalLens India helps startups, freelancers, employees, landlords/tenants, and s
 |-------|-----------|
 | Frontend | React, TypeScript, Vite, Tailwind CSS, shadcn/ui |
 | Backend | Python 3.11, FastAPI, Pydantic, SQLAlchemy, Alembic |
-| Database | PostgreSQL 16 + pgvector |
-| Cache/Queue | Redis 7 |
+| Database | PostgreSQL 16 + asyncpg |
+| Cache/Queue | Redis 7, Celery |
 | Storage | MinIO (S3-compatible) |
-| AI | LangGraph, OpenAI/Anthropic |
-| Workers | Celery |
+| AI | LangGraph, OpenAI/Groq |
+| Payments | Razorpay |
 | Infrastructure | Docker, Docker Compose |
+
+## Packages
+
+| Package | Description |
+|---------|-------------|
+| `packages/ai` | LangGraph analysis engine with 8 nodes |
+| `packages/legal` | Indian legal corpus (Contract Act, Companies Act, IT Act) |
+| `packages/retrieval` | Hybrid BM25 + vector search with reranking |
+| `packages/document_processing` | PDF/DOCX extraction and clause segmentation |
 
 ## Local Development
 
@@ -114,21 +135,6 @@ docker compose up --build
 docker compose up -d postgres redis minio
 ```
 
-### Available Commands
-
-```bash
-make help           # Show all available commands
-make dev            # Start development servers
-make test           # Run all tests
-make lint           # Run linting
-make format         # Format code
-make check          # Run lint + tests
-make migrate        # Run database migrations
-make seed           # Seed development data
-make health         # Check service health
-make docker-reset   # Reset Docker environment
-```
-
 ## Environment Variables
 
 See `apps/api/.env.example` for all required environment variables.
@@ -136,99 +142,32 @@ See `apps/api/.env.example` for all required environment variables.
 Key variables:
 - `DATABASE_URL` - PostgreSQL connection string
 - `REDIS_URL` - Redis connection string
-- `LLM_API_KEY` - OpenAI/Anthropic API key
+- `OPENAI_API_KEY` or `GROQ_API_KEY` - LLM provider
 - `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` - Payment processing
-
-## Project Structure
-
-```
-legallens-india/
-├── apps/
-│   ├── api/           # FastAPI backend
-│   └── web/           # React frontend
-├── packages/
-│   ├── ai/            # LLM abstraction, LangGraph
-│   ├── legal/         # Legal knowledge, citations
-│   ├── document_processing/  # PDF/DOCX extraction
-│   ├── retrieval/     # RAG, vector search
-│   └── shared/        # Common utilities
-├── workers/
-│   ├── document_worker/   # Document processing tasks
-│   └── analysis_worker/   # Analysis pipeline tasks
-├── infrastructure/
-│   ├── docker/        # Dockerfiles
-│   ├── nginx/         # Reverse proxy config
-│   └── terraform/     # Cloud infrastructure
-├── data/
-│   ├── raw/           # Raw documents (gitignored)
-│   ├── processed/     # Processed data (gitignored)
-│   └── evaluation/    # Test datasets
-├── tests/
-│   ├── unit/
-│   ├── integration/
-│   ├── security/
-│   └── evaluation/
-├── docs/              # Documentation
-├── scripts/           # Utility scripts
-├── docker-compose.yml
-├── Makefile
-└── pyproject.toml
-```
-
-## API Documentation
-
-When running in development mode, API documentation is available at:
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
+- `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` - Object storage
 
 ## Testing
 
 ```bash
-# Run all tests
+# Run all tests (260+ tests)
 make test
 
-# Run with coverage
-make test-cov
-
-# Run specific test categories
-make test-unit
-make test-integration
-make test-security
-make test-evaluation
+# Run specific test suites
+cd apps/api && python -m pytest tests/ -q        # 216 API tests
+cd packages/ai && python -m pytest tests/ -q      # 19 AI tests
+cd packages/legal && python -m pytest tests/ -q   # 10 legal tests
+cd packages/retrieval && python -m pytest tests/ -q # 9 retrieval tests
+python -m pytest tests/evaluation/ -q              # 6 evaluation tests
 ```
 
-## Deployment
+## CI/CD
 
-See `docs/deployment.md` for production deployment instructions.
-
-## CI/CD Pipeline
-
-The CI pipeline consists of the following jobs:
-
-| Job | Status |
-|-----|--------|
-| Lint & Format | ✅ Ruff linting + format checking |
-| Unit Tests | ✅ pytest with coverage (291 tests) |
-| Security Scan | ✅ Bandit SAST + Safety dependency scan |
-| AI Evaluation | ✅ AI evaluation tests |
-| Docker Build | ⚠️ Builds API/Web images (Dockerfile renamed from `Dockerfile.prod`) |
-
-**Recent fixes:**
-- Renamed `apps/api/Dockerfile.prod` → `apps/api/Dockerfile` and `apps/web/Dockerfile.prod` → `apps/web/Dockerfile` to match workflow references
-- Deleted `apps/api/requirements.txt` — dependencies now managed via `pyproject.toml` only
-- Fixed Celery worker command to use `-A app.core.celery_config`
-- Removed unused backend code (`task_monitor.py`, unused usage schemas)
-- Fixed frontend auth: login sends JSON, correctly stores `refresh_token`, register redirects to login
-- Dashboard now shows live stats from documents/analyses/subscription APIs
-
-## Local Development
-
-### Prerequisites
-
-- Python 3.11+
-- Node.js 20+
-- Docker & Docker Compose
-- Git
+GitHub Actions workflow runs:
+- Lint (Ruff)
+- Unit tests (pytest)
+- Security scan (Bandit)
+- AI evaluation tests
+- Docker build
 
 ## Security
 
@@ -236,14 +175,6 @@ The CI pipeline consists of the following jobs:
 - Tenant isolation is enforced at the API layer
 - File uploads are validated by MIME type, extension, and file signature
 - Secrets are never committed to the repository
-- See `docs/security.md` for details
-
-## Limitations
-
-- AI analysis is not a substitute for professional legal advice
-- Legal information may not reflect the most recent changes in law
-- Jurisdiction-specific nuances may require local legal expertise
-- Complex documents may require manual review
 
 ## License
 
