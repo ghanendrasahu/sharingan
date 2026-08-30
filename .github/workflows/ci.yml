@@ -80,14 +80,16 @@ jobs:
 
       - name: Run Bandit (SAST)
         run: |
-          bandit -r apps/api/ -f json -o bandit-report.json -ll
+          bandit -r apps/api/ -f json -o bandit-report.json -ll -q
         continue-on-error: true
 
       - name: Check Bandit high-severity findings
         run: |
-          bandit -r apps/api/ --severity-level high -f json | python -c "
-          import sys, json
-          data = json.load(sys.stdin)
+          bandit -r apps/api/ --severity-level high -f json -q > /tmp/bandit-high.json
+          python -c "
+          import json, sys
+          with open('/tmp/bandit-high.json') as f:
+              data = json.load(f)
           results = data.get('results', [])
           if results:
               print(f'::error::Bandit found {len(results)} high-severity issue(s)')
@@ -128,6 +130,8 @@ jobs:
           pip install fastapi uvicorn pydantic pydantic-settings sqlalchemy alembic asyncpg psycopg2-binary redis celery python-jose "passlib[bcrypt]" bcrypt python-multipart httpx structlog prometheus-client boto3 mangum razorpay
 
       - name: Run evaluation tests
+        env:
+          DEBUG: "true"
         run: |
           python -m pytest apps/api/tests/unit/test_evaluation.py -v
 
