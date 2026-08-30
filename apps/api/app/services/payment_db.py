@@ -92,10 +92,10 @@ class PaymentService:
                 razorpay_order_id = order.get("id", "")
             except Exception:
                 logger.exception("Razorpay order creation failed, using mock")
-                razorpay_order_id = f"order_{hashlib.md5(f'{user_id}{plan_type}{datetime.now(tz=UTC).isoformat()}'.encode()).hexdigest()[:12]}"
+                razorpay_order_id = f"order_{hashlib.md5(f'{user_id}{plan_type}{datetime.now(tz=UTC).isoformat()}'.encode(), usedforsecurity=False).hexdigest()[:12]}"
         else:
             # Mock order for free plans or when Razorpay not configured
-            razorpay_order_id = f"order_{hashlib.md5(f'{user_id}{plan_type}{datetime.now(tz=UTC).isoformat()}'.encode()).hexdigest()[:12]}"
+            razorpay_order_id = f"order_{hashlib.md5(f'{user_id}{plan_type}{datetime.now(tz=UTC).isoformat()}'.encode(), usedforsecurity=False).hexdigest()[:12]}"
 
         # Create payment record
         payment = PaymentRecord(

@@ -48,7 +48,7 @@ class PaymentService:
         """Create a Razorpay order for subscription."""
         plan = PLANS[plan_type]
 
-        order_id = f"order_{hashlib.md5(f'{user_id}{plan_type}{datetime.now(tz=UTC).isoformat()}'.encode()).hexdigest()[:12]}"
+        order_id = f"order_{hashlib.md5(f'{user_id}{plan_type}{datetime.now(tz=UTC).isoformat()}'.encode(), usedforsecurity=False).hexdigest()[:12]}"
 
         order = {
             "order_id": order_id,
@@ -94,7 +94,7 @@ class PaymentService:
 
         # Create payment record
         payment = Payment(
-            payment_id=f"pay_{hashlib.md5(razorpay_payment_id.encode()).hexdigest()[:12]}",
+            payment_id=f"pay_{hashlib.md5(razorpay_payment_id.encode(), usedforsecurity=False).hexdigest()[:12]}",
             user_id=order["user_id"],
             organization_id=order["organization_id"],
             amount_inr=order["amount"] / 100,
@@ -146,7 +146,7 @@ class PaymentService:
         plan = PLANS[plan_type]
 
         subscription = Subscription(
-            subscription_id=f"sub_{hashlib.md5(f'{user_id}{organization_id}'.encode()).hexdigest()[:12]}",
+            subscription_id=f"sub_{hashlib.md5(f'{user_id}{organization_id}'.encode(), usedforsecurity=False).hexdigest()[:12]}",
             user_id=user_id,
             organization_id=organization_id,
             plan_type=plan_type,

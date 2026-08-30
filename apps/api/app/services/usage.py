@@ -43,7 +43,7 @@ class UsageService:
     ) -> UsageRecord:
         """Record a usage event."""
         record = UsageRecord(
-            record_id=f"usage_{hashlib.md5(f'{user_id}{usage_type.value}'.encode()).hexdigest()[:12]}",
+            record_id=f"usage_{hashlib.md5(f'{user_id}{usage_type.value}'.encode(), usedforsecurity=False).hexdigest()[:12]}",
             user_id=user_id,
             organization_id=organization_id,
             usage_type=usage_type,

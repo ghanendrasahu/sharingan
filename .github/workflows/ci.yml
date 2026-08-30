@@ -49,6 +49,8 @@ jobs:
           pip install fastapi uvicorn pydantic pydantic-settings sqlalchemy alembic asyncpg psycopg2-binary redis celery python-jose "passlib[bcrypt]" bcrypt python-multipart httpx structlog prometheus-client boto3 mangum razorpay
 
       - name: Run tests
+        env:
+          DEBUG: "true"
         run: |
           python -m pytest apps/api/tests/unit/ packages/document_processing/tests/ \
             --cov=apps/api --cov=packages/document_processing \
@@ -83,7 +85,7 @@ jobs:
 
       - name: Check Bandit high-severity findings
         run: |
-          bandit -r apps/api/ -ll --severity-level high -f json | python -c "
+          bandit -r apps/api/ --severity-level high -f json | python -c "
           import sys, json
           data = json.load(sys.stdin)
           results = data.get('results', [])
