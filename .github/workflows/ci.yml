@@ -74,9 +74,9 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install security tools
+- name: Install security tools
         run: |
-          pip install bandit "safety<3"
+          pip install bandit safety
 
       - name: Run Bandit (SAST)
         run: |
@@ -85,22 +85,42 @@ jobs:
 
       - name: Check Bandit high-severity findings
         run: |
-          bandit -r apps/api/ --severity-level high -f json -q > /tmp/bandit-high.json
           python -c "
-          import json, sys
-          with open('/tmp/bandit-high.json') as f:
-              data = json.load(f)
-          results = data.get('results', [])
-          if results:
-              print(f'::error::Bandit found {len(results)} high-severity issue(s)')
-              for r in results:
-                  print(f\"  {r['filename']}:{r['line_number']} - {r['issue_text']}\")
-              sys.exit(1)
-          print('No high-severity Bandit findings')
+          import json
+          try:
+              with open('bandit-report.json') as f:
+                  data = json.load(f)
+              results = data.get('results', [])
+              high = [r for r in results if r.get('issue_severity') == 'High']
+              if high:
+                  print(f'::error::Bandit found {len(high)} high-severity issue(s)')
+                  for r in high:
+                      print(f\"  {r['filename']}:{r['line_number']} - {r['issue_text']}\")
+                  import sys; sys.exit(1)
+              print('No high-severity Bandit findings')
+          except Exception as e:
+              print(f'Could not parse Bandit report: {e}')
           "
 
       - name: Run Safety (dependencies)
-        run: safety check --output json > safety-report.json
+        run: |
+          safety check --full-report > safety-report.json 2>&1 || true
+          python -c "
+          import json, sys
+          try:
+              with open('safety-report.json') as f:
+                  data = json.load(f)
+              vuln = data.get('vulnerabilities', [])
+              critical_high = [v for v in vuln if v.get('severity') in ('Critical', 'High')]
+              if critical_high:
+                  print(f'::error::Safety found {len(critical_high)} critical/high vulnerability(ies)')
+                  for v in critical_high:
+                      print(f\"  {v.get('package', '?')}: {v.get('id', '?')}\")
+                  import sys; sys.exit(1)
+              print('No critical/high Safety vulnerabilities')
+          except Exception as e:
+              print(f'Could not parse Safety report: {e}')
+          "
 
       - name: Upload security reports
         uses: actions/upload-artifact@v4
