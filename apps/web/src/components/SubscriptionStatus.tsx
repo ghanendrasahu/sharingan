@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Cancel, Loader2, Calendar, CreditCard } from "lucide-react";
+import { XCircle, Loader2, Calendar, CreditCard } from "lucide-react";
 import { paymentsApi } from "../lib/payments";
 
 interface SubscriptionStatusProps {
@@ -18,7 +18,7 @@ export function SubscriptionStatus({ onCancel }: SubscriptionStatusProps) {
 
   const cancelMutation = useMutation({
     mutationFn: (subscriptionId: string) =>
-      paymentsApi.cancelSubscription({ subscription_id: subscriptionId }),
+      paymentsApi.cancelSubscription(subscriptionId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subscription"] });
       setShowCancelConfirm(false);
@@ -116,7 +116,7 @@ export function SubscriptionStatus({ onCancel }: SubscriptionStatusProps) {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-background rounded-lg p-6 max-w-md w-full mx-4">
             <div className="flex items-center gap-2 mb-4">
-              <Cancel className="h-5 w-5 text-red-500" />
+              <XCircle className="h-5 w-5 text-red-500" />
               <h3 className="text-lg font-medium">Cancel Subscription</h3>
             </div>
 

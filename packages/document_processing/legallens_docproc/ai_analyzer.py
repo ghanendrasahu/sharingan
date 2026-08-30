@@ -87,7 +87,7 @@ class GroqProvider(LLMProvider):
     async def generate(self, prompt: str, model: str | None = None) -> str:
         """Generate text using Groq API."""
         try:
-            from groq import AsyncGroq
+            from groq import AsyncGroq  # type: ignore[import-untyped,import-not-found]
 
             client = AsyncGroq(api_key=self.api_key)
             response = await client.chat.completions.create(

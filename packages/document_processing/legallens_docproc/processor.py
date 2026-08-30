@@ -60,16 +60,16 @@ def process_document(
 
         # Extract text based on format
         if doc_format == DocumentFormat.PDF:
-            result = extract_pdf_text(content)
-            if result.error:
+            pdf_result = extract_pdf_text(content)
+            if pdf_result.error:
                 return ProcessingResult(
                     success=False,
-                    error=result.error,
+                    error=pdf_result.error,
                 )
 
             # Convert to structured pages
             pages = []
-            for page_data in result.pages:
+            for page_data in pdf_result.pages:
                 text_blocks = [
                     TextBlock(
                         text=page_data.text,
@@ -86,18 +86,18 @@ def process_document(
                 )
 
             doc.pages = pages
-            doc.metadata = result.metadata
+            doc.metadata = pdf_result.metadata
 
         elif doc_format == DocumentFormat.DOCX:
-            result = extract_docx_text(content)
-            if result.error:
+            docx_result = extract_docx_text(content)
+            if docx_result.error:
                 return ProcessingResult(
                     success=False,
-                    error=result.error,
+                    error=docx_result.error,
                 )
 
             # Convert paragraphs to pages (single page for DOCX)
-            full_text = "\n\n".join(p.text for p in result.paragraphs if p.text)
+            full_text = "\n\n".join(p.text for p in docx_result.paragraphs if p.text)
             text_blocks = [
                 TextBlock(
                     text=p.text,
@@ -106,7 +106,7 @@ def process_document(
                     is_heading=p.is_heading,
                     heading_level=p.heading_level,
                 )
-                for p in result.paragraphs
+                for p in docx_result.paragraphs
                 if p.text.strip()
             ]
 
@@ -117,7 +117,7 @@ def process_document(
                     text_blocks=text_blocks,
                 )
             ]
-            doc.metadata = result.metadata
+            doc.metadata = docx_result.metadata
 
         # Mark as completed
         doc.status = ProcessingStatus.COMPLETED

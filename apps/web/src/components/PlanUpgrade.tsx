@@ -20,14 +20,15 @@ export function PlanUpgrade({ currentPlan, onSuccess }: PlanUpgradeProps) {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const { data: plans } = useQuery({
+  const { data: plansData } = useQuery({
     queryKey: ["plans"],
     queryFn: () => paymentsApi.getPlans(),
   });
+  const plans = plansData?.plans;
 
   const createOrderMutation = useMutation({
     mutationFn: (planType: string) =>
-      paymentsApi.createOrder({ plan_type: planType as Plan }),
+      paymentsApi.createOrder(planType),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["plans"] });
       queryClient.invalidateQueries({ queryKey: ["subscription"] });
@@ -47,7 +48,7 @@ export function PlanUpgrade({ currentPlan, onSuccess }: PlanUpgradeProps) {
     }
   };
 
-  const currentPlanDetails = plans?.find((p) => p.plan_type === currentPlan);
+  const currentPlanDetails = plans?.find((p: Plan) => p.plan_type === currentPlan);
 
   return (
     <div className="space-y-6">
@@ -71,14 +72,14 @@ export function PlanUpgrade({ currentPlan, onSuccess }: PlanUpgradeProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {plans?.map((plan) => {
+        {plans?.map((plan: Plan) => {
           const isCurrent = plan.plan_type === currentPlan;
           const isUpgrade =
-            plans.findIndex((p) => p.plan_type === plan.plan_type) >
-            plans.findIndex((p) => p.plan_type === currentPlan);
+            plans.findIndex((p: Plan) => p.plan_type === plan.plan_type) >
+            plans.findIndex((p: Plan) => p.plan_type === currentPlan);
           const isDowngrade =
-            plans.findIndex((p) => p.plan_type === plan.plan_type) <
-            plans.findIndex((p) => p.plan_type === currentPlan);
+            plans.findIndex((p: Plan) => p.plan_type === plan.plan_type) <
+            plans.findIndex((p: Plan) => p.plan_type === currentPlan);
 
           return (
             <div
@@ -111,7 +112,7 @@ export function PlanUpgrade({ currentPlan, onSuccess }: PlanUpgradeProps) {
                 </span>
               </p>
               <ul className="space-y-1">
-                {plan.features.slice(0, 3).map((feature, i) => (
+                {plan.features.slice(0, 3).map((feature: string, i: number) => (
                   <li
                     key={i}
                     className="flex items-center gap-2 text-sm text-muted-foreground"
@@ -155,7 +156,7 @@ export function PlanUpgrade({ currentPlan, onSuccess }: PlanUpgradeProps) {
               <div className="border rounded-lg p-4">
                 <p className="text-sm text-muted-foreground">To</p>
                 <p className="font-medium">
-                  {plans?.find((p) => p.plan_type === selectedPlan)?.name}
+                  {plans?.find((p: Plan) => p.plan_type === selectedPlan)?.name}
                 </p>
               </div>
 
