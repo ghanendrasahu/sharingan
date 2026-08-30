@@ -102,7 +102,7 @@ async def start_analysis(
         )
 
     # Trigger Celery task
-    task = analyze_document_task.delay(
+    task = analyze_document_task.delay(  # type: ignore[reportCallIssue]
         document_id=str(document_id),
         analysis_type=request.analysis_type,
         user_id=str(current_user.id),

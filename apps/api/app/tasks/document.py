@@ -133,7 +133,7 @@ def process_document_task(
 
         from app.tasks.analysis import analyze_document_task
 
-        analyze_document_task.delay(
+        analyze_document_task.delay(  # type: ignore[reportCallIssue]
             document_id=document_id,
             user_id=user_id,
             organization_id=organization_id,
