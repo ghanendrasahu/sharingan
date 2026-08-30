@@ -1,11 +1,15 @@
 """Unit tests for production deployment configuration."""
 
+from pathlib import Path
+
 import yaml
+
+REPO_ROOT = Path(__file__).parent.parent.parent.parent.parent
 
 
 def test_prod_compose_exists():
     """Test that production compose file exists."""
-    with open("docker-compose.prod.yml") as f:
+    with open(REPO_ROOT / "docker-compose.prod.yml") as f:
         compose = yaml.safe_load(f)
     assert "services" in compose
     assert "api" in compose["services"]
@@ -17,7 +21,7 @@ def test_prod_compose_exists():
 
 def test_api_dockerfile():
     """Test API production Dockerfile."""
-    with open("apps/api/Dockerfile") as f:
+    with open(REPO_ROOT / "apps/api/Dockerfile") as f:
         content = f.read()
     assert "python:3.11-slim" in content
     assert "HEALTHCHECK" in content
@@ -26,7 +30,7 @@ def test_api_dockerfile():
 
 def test_web_dockerfile():
     """Test Web production Dockerfile."""
-    with open("apps/web/Dockerfile") as f:
+    with open(REPO_ROOT / "apps/web/Dockerfile") as f:
         content = f.read()
     assert "node:22-alpine" in content
     assert "HEALTHCHECK" in content
@@ -35,7 +39,7 @@ def test_web_dockerfile():
 
 def test_nginx_config():
     """Test nginx configuration."""
-    with open("apps/web/nginx.conf") as f:
+    with open(REPO_ROOT / "apps/web/nginx.conf") as f:
         content = f.read()
     assert "listen 80" in content
     assert "X-Frame-Options" in content
@@ -44,7 +48,7 @@ def test_nginx_config():
 
 def test_prod_compose_services():
     """Test production compose services."""
-    with open("docker-compose.prod.yml") as f:
+    with open(REPO_ROOT / "docker-compose.prod.yml") as f:
         compose = yaml.safe_load(f)
     services = compose["services"]
 
@@ -58,7 +62,7 @@ def test_prod_compose_services():
 
 def test_prod_compose_volumes():
     """Test production compose volumes."""
-    with open("docker-compose.prod.yml") as f:
+    with open(REPO_ROOT / "docker-compose.prod.yml") as f:
         compose = yaml.safe_load(f)
     volumes = compose.get("volumes", {})
 
@@ -69,7 +73,7 @@ def test_prod_compose_volumes():
 
 def test_prod_compose_healthchecks():
     """Test production compose healthchecks."""
-    with open("docker-compose.prod.yml") as f:
+    with open(REPO_ROOT / "docker-compose.prod.yml") as f:
         compose = yaml.safe_load(f)
 
     for service_name in ["api", "web", "db", "redis", "minio"]:
@@ -79,7 +83,7 @@ def test_prod_compose_healthchecks():
 
 def test_env_example_exists():
     """Test that .env.example exists."""
-    with open(".env.example") as f:
+    with open(REPO_ROOT / ".env.example") as f:
         content = f.read()
     assert "POSTGRES_PASSWORD" in content
     assert "SECRET_KEY" in content
@@ -88,7 +92,7 @@ def test_env_example_exists():
 
 def test_backup_script_exists():
     """Test that backup script exists."""
-    with open("scripts/backup.sh") as f:
+    with open(REPO_ROOT / "scripts/backup.sh") as f:
         content = f.read()
     assert "pg_dump" in content
     assert "BACKUP_DIR" in content

@@ -215,10 +215,11 @@ The CI pipeline consists of the following jobs:
 
 **Recent fixes:**
 - Renamed `apps/api/Dockerfile.prod` → `apps/api/Dockerfile` and `apps/web/Dockerfile.prod` → `apps/web/Dockerfile` to match workflow references
-- Added `pip install -r apps/api/requirements.txt` to test/evaluation jobs (API dependencies: SQLAlchemy, etc.)
-- Added `pip install aiosqlite` for async test database support
-- Added `pip install email-validator` for pydantic email validation
-- Updated deployment tests to reference `Dockerfile` instead of `Dockerfile.prod`
+- Deleted `apps/api/requirements.txt` — dependencies now managed via `pyproject.toml` only
+- Fixed Celery worker command to use `-A app.core.celery_config`
+- Removed unused backend code (`task_monitor.py`, unused usage schemas)
+- Fixed frontend auth: login sends JSON, correctly stores `refresh_token`, register redirects to login
+- Dashboard now shows live stats from documents/analyses/subscription APIs
 
 ## Local Development
 

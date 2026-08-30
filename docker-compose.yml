@@ -36,7 +36,7 @@ services:
       - ./apps/api/app:/app/app
       - ./workers:/app/workers
     command: >
-      celery -A app.tasks.celery_app worker --loglevel=info --concurrency=2
+      celery -A app.core.celery_config worker --loglevel=info --concurrency=2
 
   web:
     build:

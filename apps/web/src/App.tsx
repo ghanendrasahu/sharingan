@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { AppLayout } from "./components/AppLayout";
 import { ProtectedRoute, PublicRoute } from "./components/ProtectedRoute";
 import { LoginPage } from "./pages/LoginPage";
@@ -9,10 +9,33 @@ import { AnalysisPage } from "./pages/AnalysisPage";
 import { SearchPage } from "./pages/SearchPage";
 import { PaymentPage } from "./pages/PaymentPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { documentsApi } from "./lib/documents";
+import { analysisApi } from "./lib/analysis";
+import { paymentsApi } from "./lib/payments";
 
 const queryClient = new QueryClient();
 
 function Dashboard() {
+  const { data: documents } = useQuery({
+    queryKey: ["documents", 1],
+    queryFn: () => documentsApi.list(1, 1),
+  });
+  const { data: analyses } = useQuery({
+    queryKey: ["analyses"],
+    queryFn: () => analysisApi.listAnalyses(undefined, 1, 100),
+  });
+  const { data: subscription } = useQuery({
+    queryKey: ["subscription"],
+    queryFn: () => paymentsApi.getSubscription(),
+  });
+
+  const documentCount = documents?.total ?? 0;
+  const analysisCount = analyses?.total ?? 0;
+  const riskCount =
+    analyses?.analyses.reduce((sum, item) => sum + (item.risks?.length ?? 0), 0) ??
+    0;
+  const credits = subscription?.credits_remaining ?? 0;
+
   return (
     <div className="p-8">
       <div className="mb-8">
@@ -23,14 +46,26 @@ function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Documents" value="0" description="Uploaded documents" />
-        <StatCard title="Analyses" value="0" description="Completed analyses" />
+        <StatCard
+          title="Documents"
+          value={String(documentCount)}
+          description="Uploaded documents"
+        />
+        <StatCard
+          title="Analyses"
+          value={String(analysisCount)}
+          description="Completed analyses"
+        />
         <StatCard
           title="Risks Found"
-          value="0"
+          value={String(riskCount)}
           description="Total risks identified"
         />
-        <StatCard title="Credits" value="5" description="Credits remaining" />
+        <StatCard
+          title="Credits"
+          value={String(credits)}
+          description="Credits remaining"
+        />
       </div>
 
       <div className="mt-8 border rounded-lg p-6">

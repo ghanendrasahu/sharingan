@@ -5,33 +5,6 @@ from __future__ import annotations
 from pydantic import BaseModel, Field
 
 
-class UsageRecordResponse(BaseModel):
-    """Single usage record response."""
-
-    record_id: str
-    user_id: str
-    organization_id: str
-    usage_type: str
-    quantity: int = 1
-    created_at: str
-
-
-class UsageSummaryResponse(BaseModel):
-    """Usage summary response."""
-
-    usage_type: str
-    total_quantity: int
-    period_start: str
-    period_end: str
-
-
-class UsageLimitsResponse(BaseModel):
-    """Usage limits response."""
-
-    plan_type: str
-    limits: dict[str, int]
-
-
 class CurrentUsageResponse(BaseModel):
     """Current usage status response."""
 

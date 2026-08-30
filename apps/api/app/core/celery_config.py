@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import logging
+
 from celery import Celery
 from celery.signals import task_postrun, task_prerun
 
 from app.core.config import get_settings
+
+logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
@@ -70,10 +74,10 @@ celery_app.conf.update(
 @task_prerun.connect
 def task_prerun_handler(sender: str, **kwargs: object) -> None:
     """Handle task start."""
-    print(f"Task {sender} starting...")
+    logger.info("Task %s starting...", sender)
 
 
 @task_postrun.connect
 def task_postrun_handler(sender: str, **kwargs: object) -> None:
     """Handle task completion."""
-    print(f"Task {sender} completed.")
+    logger.info("Task %s completed.", sender)

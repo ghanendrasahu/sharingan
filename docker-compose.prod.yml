@@ -4,7 +4,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: apps/api/Dockerfile.prod
+      dockerfile: apps/api/Dockerfile
     environment:
       - DATABASE_URL=postgresql+asyncpg://postgres:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       - REDIS_URL=redis://redis:6379/0
@@ -36,7 +36,7 @@ services:
   web:
     build:
       context: .
-      dockerfile: apps/web/Dockerfile.prod
+      dockerfile: apps/web/Dockerfile
     ports:
       - "80:80"
     depends_on:
@@ -54,7 +54,7 @@ services:
   worker:
     build:
       context: .
-      dockerfile: apps/api/Dockerfile.prod
+      dockerfile: apps/api/Dockerfile
     command: celery -A app.core.celery_config worker --loglevel=info --concurrency=4
     environment:
       - DATABASE_URL=postgresql+asyncpg://postgres:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}

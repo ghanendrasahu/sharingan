@@ -17,10 +17,8 @@ export function RegisterPage() {
 
   const registerMutation = useMutation({
     mutationFn: authApi.register,
-    onSuccess: (data) => {
-      localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("refresh_token", data.access_token);
-      navigate("/");
+    onSuccess: () => {
+      navigate("/login");
     },
     onError: (err: Error) => {
       setError(err.message || "Registration failed. Please try again.");

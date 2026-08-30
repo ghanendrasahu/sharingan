@@ -14,7 +14,7 @@ export function LoginPage() {
     mutationFn: authApi.login,
     onSuccess: (data) => {
       localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("refresh_token", data.access_token);
+      localStorage.setItem("refresh_token", data.refresh_token);
       navigate("/");
     },
     onError: (err: Error) => {
