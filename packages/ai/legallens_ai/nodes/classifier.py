@@ -69,7 +69,14 @@ def _classify_by_keywords(text: str) -> str:
         return "nda"
 
     # Employment indicators
-    employment_keywords = ["employment", "employee", "employer", "salary", "compensation", "termination of employment"]
+    employment_keywords = [
+        "employment",
+        "employee",
+        "employer",
+        "salary",
+        "compensation",
+        "termination of employment",
+    ]
     if any(kw in text_lower for kw in employment_keywords):
         return "employment"
 
@@ -84,7 +91,12 @@ def _classify_by_keywords(text: str) -> str:
         return "vendor"
 
     # Consultancy indicators
-    consultancy_keywords = ["consultant", "consultancy", "independent contractor", "professional services"]
+    consultancy_keywords = [
+        "consultant",
+        "consultancy",
+        "independent contractor",
+        "professional services",
+    ]
     if any(kw in text_lower for kw in consultancy_keywords):
         return "consultancy"
 
@@ -119,7 +131,10 @@ def _call_llm(prompt: str) -> str | None:
                 response = await client.chat.completions.create(
                     model="gpt-4o-mini",
                     messages=[
-                        {"role": "system", "content": "You are a legal document classifier. Respond in valid JSON."},
+                        {
+                            "role": "system",
+                            "content": "You are a legal document classifier. Respond in valid JSON.",
+                        },
                         {"role": "user", "content": prompt},
                     ],
                     temperature=0.1,
@@ -145,7 +160,10 @@ def _call_llm(prompt: str) -> str | None:
                 response = await client.chat.completions.create(
                     model="llama-3.1-8b-instant",
                     messages=[
-                        {"role": "system", "content": "You are a legal document classifier. Respond in valid JSON."},
+                        {
+                            "role": "system",
+                            "content": "You are a legal document classifier. Respond in valid JSON.",
+                        },
                         {"role": "user", "content": prompt},
                     ],
                     temperature=0.1,

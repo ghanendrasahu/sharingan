@@ -23,10 +23,12 @@ def verify_evidence(state: AnalysisState) -> dict[str, Any]:
     claims = []
     for risk in risk_findings[:15]:
         if hasattr(risk, "legal_source") and risk.legal_source:
-            claims.append({
-                "claim": f"{risk.title}: {risk.description}",
-                "source": risk.legal_source,
-            })
+            claims.append(
+                {
+                    "claim": f"{risk.title}: {risk.description}",
+                    "source": risk.legal_source,
+                }
+            )
 
     if not claims:
         # No claims to verify
@@ -82,10 +84,25 @@ def _rule_based_verification(
     # Known valid Indian legal citations
     known_citations = {
         "indian contract act": {"source": "Indian Contract Act, 1872", "valid": True},
-        "section 27": {"source": "Indian Contract Act, 1872", "section": "27", "valid": True, "note": "Non-compete restrictions"},
-        "section 10": {"source": "Indian Contract Act, 1872", "section": "10", "valid": True, "note": "Valid contract requirements"},
+        "section 27": {
+            "source": "Indian Contract Act, 1872",
+            "section": "27",
+            "valid": True,
+            "note": "Non-compete restrictions",
+        },
+        "section 10": {
+            "source": "Indian Contract Act, 1872",
+            "section": "10",
+            "valid": True,
+            "note": "Valid contract requirements",
+        },
         "it act": {"source": "Information Technology Act, 2000", "valid": True},
-        "section 43a": {"source": "Information Technology Act, 2000", "section": "43A", "valid": True, "note": "Data protection"},
+        "section 43a": {
+            "source": "Information Technology Act, 2000",
+            "section": "43A",
+            "valid": True,
+            "note": "Data protection",
+        },
         "companies act": {"source": "Companies Act, 2013", "valid": True},
         "dpdp": {"source": "Digital Personal Data Protection Act, 2023", "valid": True},
         "arbitration act": {"source": "Arbitration and Conciliation Act, 1996", "valid": True},

@@ -77,10 +77,26 @@ jobs:
           pip install bandit safety
 
       - name: Run Bandit (SAST)
-        run: bandit -r apps/api/ -f json -o bandit-report.json || true
+        run: |
+          bandit -r apps/api/ -f json -o bandit-report.json -ll
+        continue-on-error: true
+
+      - name: Check Bandit high-severity findings
+        run: |
+          bandit -r apps/api/ -ll --severity-level high -f json | python -c "
+          import sys, json
+          data = json.load(sys.stdin)
+          results = data.get('results', [])
+          if results:
+              print(f'::error::Bandit found {len(results)} high-severity issue(s)')
+              for r in results:
+                  print(f\"  {r['filename']}:{r['line_number']} - {r['issue_text']}\")
+              sys.exit(1)
+          print('No high-severity Bandit findings')
+          "
 
       - name: Run Safety (dependencies)
-        run: safety check --output json > safety-report.json || true
+        run: safety check --output json > safety-report.json
 
       - name: Upload security reports
         uses: actions/upload-artifact@v4

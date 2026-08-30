@@ -13,9 +13,17 @@ logger = logging.getLogger(__name__)
 # Standard clauses expected per document type
 STANDARD_CLAUSES: dict[str, list[dict[str, str]]] = {
     "nda": [
-        {"name": "Definition of Confidential Information", "type": "definition", "importance": "critical"},
+        {
+            "name": "Definition of Confidential Information",
+            "type": "definition",
+            "importance": "critical",
+        },
         {"name": "Obligations of Receiving Party", "type": "obligation", "importance": "critical"},
-        {"name": "Exclusions from Confidential Information", "type": "condition", "importance": "important"},
+        {
+            "name": "Exclusions from Confidential Information",
+            "type": "condition",
+            "importance": "important",
+        },
         {"name": "Term and Termination", "type": "termination", "importance": "critical"},
         {"name": "Return of Materials", "type": "obligation", "importance": "important"},
         {"name": "Remedies for Breach", "type": "remedy", "importance": "critical"},
@@ -104,9 +112,7 @@ def detect_missing_clauses(state: AnalysisState) -> dict[str, Any]:
         existing_texts.append(clause.get("text", "").lower())
 
     # Check for missing clauses using LLM
-    llm_missing = _llm_missing_clause_analysis(
-        document_text, document_category, clauses
-    )
+    llm_missing = _llm_missing_clause_analysis(document_text, document_category, clauses)
     if llm_missing:
         return {"missing_clauses": llm_missing}
 
@@ -146,10 +152,14 @@ def _llm_missing_clause_analysis(
     from legallens_ai.prompts import MISSING_CLAUSE_PROMPT
     from legallens_ai.state import MissingClause
 
-    existing_clauses_text = "\n".join(
-        f"- {c.get('clause_type', 'unknown')}: {c.get('text', '')[:100]}..."
-        for c in clauses[:10]
-    ) if clauses else "No clauses identified"
+    existing_clauses_text = (
+        "\n".join(
+            f"- {c.get('clause_type', 'unknown')}: {c.get('text', '')[:100]}..."
+            for c in clauses[:10]
+        )
+        if clauses
+        else "No clauses identified"
+    )
 
     prompt = MISSING_CLAUSE_PROMPT.format(
         document_type=document_type,

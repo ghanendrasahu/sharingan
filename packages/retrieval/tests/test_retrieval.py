@@ -51,11 +51,13 @@ def test_vector_store_batch():
 
 def test_bm25_search():
     bm25 = BM25()
-    bm25.index([
-        ("doc1", "the cat sat on the mat"),
-        ("doc2", "the dog sat on the log"),
-        ("doc3", "the bird flew over the tree"),
-    ])
+    bm25.index(
+        [
+            ("doc1", "the cat sat on the mat"),
+            ("doc2", "the dog sat on the log"),
+            ("doc3", "the bird flew over the tree"),
+        ]
+    )
     results = bm25.search("cat sat", top_k=2)
     assert len(results) == 2
     assert results[0].doc_id == "doc1"

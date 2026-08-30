@@ -93,7 +93,9 @@ class BM25:
                 continue
 
             tf = tokens.count(qt)
-            idf = math.log((self._n_docs - self._doc_freqs[qt] + 0.5) / (self._doc_freqs[qt] + 0.5) + 1)
+            idf = math.log(
+                (self._n_docs - self._doc_freqs[qt] + 0.5) / (self._doc_freqs[qt] + 0.5) + 1
+            )
             numerator = tf * (self.k1 + 1)
             denominator = tf + self.k1 * (1 - self.b + self.b * doc_length / self._avgdl)
             score += idf * numerator / denominator
@@ -151,7 +153,12 @@ class HybridSearchEngine:
             if r.doc_id in scores:
                 scores[r.doc_id]["vector"] = r.score
             else:
-                scores[r.doc_id] = {"bm25": 0.0, "vector": r.score, "text": r.text, "metadata": r.metadata}
+                scores[r.doc_id] = {
+                    "bm25": 0.0,
+                    "vector": r.score,
+                    "text": r.text,
+                    "metadata": r.metadata,
+                }
 
         max_bm25 = max((s["bm25"] for s in scores.values()), default=1.0) or 1.0
         max_vector = max((s["vector"] for s in scores.values()), default=1.0) or 1.0

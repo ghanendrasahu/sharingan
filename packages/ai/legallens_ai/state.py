@@ -82,17 +82,23 @@ def merge_risk_findings(existing: list[RiskFinding], new: list[RiskFinding]) -> 
     return existing + new
 
 
-def merge_missing_clauses(existing: list[MissingClause], new: list[MissingClause]) -> list[MissingClause]:
+def merge_missing_clauses(
+    existing: list[MissingClause], new: list[MissingClause]
+) -> list[MissingClause]:
     """Merge missing clause lists."""
     return existing + new
 
 
-def merge_citations(existing: list[VerifiedCitation], new: list[VerifiedCitation]) -> list[VerifiedCitation]:
+def merge_citations(
+    existing: list[VerifiedCitation], new: list[VerifiedCitation]
+) -> list[VerifiedCitation]:
     """Merge citation lists."""
     return existing + new
 
 
-def merge_quality_checks(existing: list[QualityCheck], new: list[QualityCheck]) -> list[QualityCheck]:
+def merge_quality_checks(
+    existing: list[QualityCheck], new: list[QualityCheck]
+) -> list[QualityCheck]:
     """Merge quality check lists."""
     return existing + new
 

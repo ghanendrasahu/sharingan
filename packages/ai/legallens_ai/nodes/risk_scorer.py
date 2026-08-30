@@ -51,18 +51,13 @@ def calculate_risk_score(state: AnalysisState) -> dict[str, Any]:
     dimensions["financial_exposure"] = _calculate_financial_exposure(risk_findings)
 
     # Business impact: based on missing clauses and restrictions
-    dimensions["business_impact"] = _calculate_business_impact(
-        risk_findings, missing_clauses
-    )
+    dimensions["business_impact"] = _calculate_business_impact(risk_findings, missing_clauses)
 
     # Compliance gap: based on missing critical clauses
     dimensions["compliance_gap"] = _calculate_compliance_gap(missing_clauses)
 
     # Calculate weighted score
-    total_score = sum(
-        dimensions[dim] * DEFAULT_WEIGHTS.get(dim, 0.1)
-        for dim in dimensions
-    )
+    total_score = sum(dimensions[dim] * DEFAULT_WEIGHTS.get(dim, 0.1) for dim in dimensions)
 
     # Clamp to 0-100
     final_score = max(0, min(100, total_score))
@@ -125,8 +120,14 @@ def _calculate_enforceability(verified_citations: list) -> float:
 def _calculate_financial_exposure(risk_findings: list) -> float:
     """Calculate financial exposure dimension."""
     financial_keywords = [
-        "liability", "penalty", "damages", "indemnif",
-        "compensation", "fine", "forfeit", "penalty",
+        "liability",
+        "penalty",
+        "damages",
+        "indemnif",
+        "compensation",
+        "fine",
+        "forfeit",
+        "penalty",
     ]
 
     financial_risks = 0
@@ -156,10 +157,7 @@ def _calculate_business_impact(
             restriction_risks += 1
 
     # Missing critical clauses
-    critical_missing = sum(
-        1 for c in missing_clauses
-        if getattr(c, "importance", "") == "critical"
-    )
+    critical_missing = sum(1 for c in missing_clauses if getattr(c, "importance", "") == "critical")
 
     score = 0.0
     if risk_findings:
@@ -181,8 +179,7 @@ def _calculate_compliance_gap(missing_clauses: list) -> float:
     }
 
     total_weight = sum(
-        importance_weights.get(getattr(c, "importance", "recommended"), 1)
-        for c in missing_clauses
+        importance_weights.get(getattr(c, "importance", "recommended"), 1) for c in missing_clauses
     )
 
     # Normalize to 0-100

@@ -23,7 +23,9 @@ def analyze_risks(state: AnalysisState) -> dict[str, Any]:
     document_text = state.get("document_text", "")
 
     if not clauses:
-        clauses = [{"text": document_text[:8000], "clause_id": "full_document", "clause_type": "other"}]
+        clauses = [
+            {"text": document_text[:8000], "clause_id": "full_document", "clause_type": "other"}
+        ]
 
     all_risks: list[RiskFinding] = []
 

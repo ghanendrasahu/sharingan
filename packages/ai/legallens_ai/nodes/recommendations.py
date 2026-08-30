@@ -30,9 +30,11 @@ def generate_recommendations(state: AnalysisState) -> dict[str, Any]:
         return {"recommendations": llm_recs}
 
     # Fallback: rule-based recommendations
-    return {"recommendations": _rule_based_recommendations(
-        document_category, risk_findings, missing_clauses, risk_band
-    )}
+    return {
+        "recommendations": _rule_based_recommendations(
+            document_category, risk_findings, missing_clauses, risk_band
+        )
+    }
 
 
 def _llm_recommendations(
@@ -46,15 +48,23 @@ def _llm_recommendations(
     from legallens_ai.nodes.classifier import _call_llm, _parse_json
     from legallens_ai.prompts import RECOMMENDATION_PROMPT
 
-    risks_summary = "\n".join(
-        f"- [{getattr(r, 'severity', 'medium')}] {getattr(r, 'title', 'Unknown')}"
-        for r in risk_findings[:10]
-    ) if risk_findings else "No risks identified"
+    risks_summary = (
+        "\n".join(
+            f"- [{getattr(r, 'severity', 'medium')}] {getattr(r, 'title', 'Unknown')}"
+            for r in risk_findings[:10]
+        )
+        if risk_findings
+        else "No risks identified"
+    )
 
-    missing_summary = "\n".join(
-        f"- [{getattr(c, 'importance', 'recommended')}] {getattr(c, 'clause_name', 'Unknown')}"
-        for c in missing_clauses[:10]
-    ) if missing_clauses else "No missing clauses identified"
+    missing_summary = (
+        "\n".join(
+            f"- [{getattr(c, 'importance', 'recommended')}] {getattr(c, 'clause_name', 'Unknown')}"
+            for c in missing_clauses[:10]
+        )
+        if missing_clauses
+        else "No missing clauses identified"
+    )
 
     prompt = RECOMMENDATION_PROMPT.format(
         document_type=document_category,
@@ -88,8 +98,7 @@ def _rule_based_recommendations(
 
     # Critical risk recommendations
     critical_risks = [
-        r for r in risk_findings
-        if str(getattr(r, "severity", "")).lower() in ("critical", "high")
+        r for r in risk_findings if str(getattr(r, "severity", "")).lower() in ("critical", "high")
     ]
     if critical_risks:
         recommendations.append(
@@ -98,10 +107,7 @@ def _rule_based_recommendations(
         )
 
     # Missing clause recommendations
-    critical_missing = [
-        c for c in missing_clauses
-        if getattr(c, "importance", "") == "critical"
-    ]
+    critical_missing = [c for c in missing_clauses if getattr(c, "importance", "") == "critical"]
     if critical_missing:
         recommendations.append(
             f"Add {len(critical_missing)} critical missing clauses: "
@@ -153,23 +159,15 @@ def _rule_based_recommendations(
     # Risk band recommendations
     if risk_band == "critical":
         recommendations.insert(
-            0,
-            "WARNING: This document has critical risk level. "
-            "Do not sign without legal review."
+            0, "WARNING: This document has critical risk level. Do not sign without legal review."
         )
     elif risk_band == "high":
         recommendations.insert(
-            0,
-            "This document has high risk level. "
-            "Strongly recommend legal review."
+            0, "This document has high risk level. Strongly recommend legal review."
         )
 
     # General best practices
-    recommendations.append(
-        "Ensure all parties have signed the final version"
-    )
-    recommendations.append(
-        "Keep a signed copy for your records"
-    )
+    recommendations.append("Ensure all parties have signed the final version")
+    recommendations.append("Keep a signed copy for your records")
 
     return recommendations[:10]  # Limit to 10 recommendations

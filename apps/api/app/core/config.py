@@ -2,7 +2,10 @@
 
 from functools import lru_cache
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings
+
+_INSECURE_DEFAULTS = frozenset({"change-me-in-production", "minioadmin", ""})
 
 
 class Settings(BaseSettings):
@@ -63,6 +66,31 @@ class Settings(BaseSettings):
     # Upload limits
     MAX_UPLOAD_SIZE_MB: int = 50
     ALLOWED_EXTENSIONS: set[str] = {"pdf", "docx"}
+
+    @model_validator(mode="after")
+    def _reject_insecure_defaults(self) -> "Settings":
+        """Reject insecure default secrets in production."""
+        if self.DEBUG:
+            return self
+
+        failures: list[str] = []
+        if self.SECRET_KEY in _INSECURE_DEFAULTS:
+            failures.append("SECRET_KEY")
+        if self.OBJECT_STORAGE_ACCESS_KEY in _INSECURE_DEFAULTS:
+            failures.append("OBJECT_STORAGE_ACCESS_KEY")
+        if self.OBJECT_STORAGE_SECRET_KEY in _INSECURE_DEFAULTS:
+            failures.append("OBJECT_STORAGE_SECRET_KEY")
+
+        if failures:
+            joined = ", ".join(failures)
+            msg = (
+                f"Insecure default values detected for {joined}. "
+                "Set proper values via environment variables or .env file. "
+                "Set DEBUG=true to bypass this check in development."
+            )
+            raise ValueError(msg)
+
+        return self
 
     model_config = {"env_file": ".env", "extra": "ignore"}
 

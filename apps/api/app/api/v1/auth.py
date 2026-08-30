@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 
 from app.core.config import get_settings
@@ -19,6 +20,7 @@ from app.schemas.auth import (
     UserResponse,
 )
 from app.services.auth import (
+    blacklist_token,
     create_access_token,
     create_refresh_token,
     get_user_id_from_token,
@@ -33,6 +35,7 @@ if TYPE_CHECKING:
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 settings = get_settings()
+_security = HTTPBearer()
 
 
 @router.post(
@@ -139,11 +142,15 @@ async def refresh_token(
     "/logout",
     response_model=MessageResponse,
 )
-async def logout() -> MessageResponse:
-    """Logout (client should discard tokens).
+async def logout(
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(_security)],
+) -> MessageResponse:
+    """Logout by blacklisting the current access token.
 
-    Note: For production, implement token blacklisting via Redis.
+    The client should discard tokens locally. The access token is
+    revoked server-side via Redis blacklist until its natural expiry.
     """
+    await blacklist_token(credentials.credentials)
     return MessageResponse(message="Successfully logged out")
 
 

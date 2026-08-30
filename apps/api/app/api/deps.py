@@ -12,7 +12,7 @@ from sqlalchemy import select
 from app.core.database import get_db
 from app.models.organization import MemberRole, OrganizationMember
 from app.models.user import User
-from app.services.auth import decode_token
+from app.services.auth import decode_token, is_token_blacklisted
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -38,6 +38,12 @@ async def get_current_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token type",
+        )
+
+    if await is_token_blacklisted(token):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has been revoked",
         )
 
     user_id = payload.get("sub")
