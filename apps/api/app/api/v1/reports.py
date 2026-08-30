@@ -311,6 +311,41 @@ async def export_report(
             html += f"<h2>{section.get('title', '')}</h2><p>{section.get('content', '')}</p>"
         html += "</body></html>"
         content = html
+    elif request.format == "pdf":
+        # Generate PDF using report generator
+        from legallens_docproc.report_generator import (
+            report_to_pdf,
+        )
+        from legallens_docproc.report_models import (
+            AnalysisReport,
+            DocumentInfo,
+            ReportFormat,
+            ReportType,
+        )
+
+        # Build AnalysisReport object
+        pdf_report = AnalysisReport(
+            report_id=str(report.id),
+            document_info=DocumentInfo(
+                document_id=str(report.document_id),
+                filename=report.title,
+                file_type="pdf",
+            ),
+            report_type=ReportType.FULL_ANALYSIS,
+            report_format=ReportFormat.PDF,
+            title=report.title,
+        )
+        pdf_report.executive_summary = report.executive_summary or ""
+        pdf_report.sections = [
+            type("Section", (), {"title": s.get("title", ""), "content": s.get("content", "")})()
+            for s in report_data.get("sections", [])
+        ]
+
+        pdf_bytes = report_to_pdf(pdf_report)
+        # For PDF, return base64 encoded content
+        import base64
+
+        content = base64.b64encode(pdf_bytes).decode("utf-8")
     else:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
