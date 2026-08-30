@@ -313,7 +313,7 @@ def report_to_pdf(report: AnalysisReport) -> bytes:
     html_content = report_to_html(report)
 
     try:
-        from weasyprint import HTML  # type: ignore[import-untyped]
+        from weasyprint import HTML  # type: ignore[import-untyped, reportMissingImports]
 
         pdf_bytes = HTML(string=html_content).write_pdf()
         return pdf_bytes

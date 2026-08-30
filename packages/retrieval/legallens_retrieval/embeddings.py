@@ -20,8 +20,8 @@ class EmbeddingService:
         """Load embedding model on demand."""
         if self._model is None:
             try:
-                from sentence_transformers import (
-                    SentenceTransformer,  # type: ignore[import-untyped]
+                from sentence_transformers import (  # type: ignore[import-untyped, reportMissingImports]
+                    SentenceTransformer,
                 )
 
                 self._model = SentenceTransformer("all-MiniLM-L6-v2")
