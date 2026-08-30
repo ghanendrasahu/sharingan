@@ -135,3 +135,97 @@ class DocumentVersion(UUIDMixin, TimestampMixin, Base):
 
     def __repr__(self) -> str:
         return f"<DocumentVersion doc={self.document_id} v{self.version_number}>"
+
+
+class DocumentPage(UUIDMixin, TimestampMixin, Base):
+    """Extracted page content from a document."""
+
+    __tablename__ = "document_pages"
+
+    document_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        ForeignKey("documents.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    page_number: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+    )
+    text: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+    )
+    char_count: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+    word_count: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+    has_images: Mapped[bool] = mapped_column(
+        nullable=False,
+        default=False,
+    )
+    is_scanned: Mapped[bool] = mapped_column(
+        nullable=False,
+        default=False,
+    )
+
+    def __repr__(self) -> str:
+        return f"<DocumentPage doc={self.document_id} p{self.page_number}>"
+
+
+class DocumentClause(UUIDMixin, TimestampMixin, Base):
+    """Segmented clause from a document."""
+
+    __tablename__ = "document_clauses"
+
+    document_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        ForeignKey("documents.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    clause_id: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+        unique=True,
+        index=True,
+    )
+    text: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+    )
+    clause_type: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        default="other",
+    )
+    risk_level: Mapped[str | None] = mapped_column(
+        String(20),
+        nullable=True,
+    )
+    page_number: Mapped[int | None] = mapped_column(
+        Integer,
+        nullable=True,
+    )
+    char_start: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+    char_end: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+    confidence: Mapped[float | None] = mapped_column(
+        nullable=True,
+    )
+
+    def __repr__(self) -> str:
+        return f"<DocumentClause {self.clause_id} type={self.clause_type}>"

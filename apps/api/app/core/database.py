@@ -2,9 +2,9 @@
 
 from collections.abc import AsyncGenerator
 
-from sqlalchemy import MetaData, text
+from sqlalchemy import MetaData, create_engine, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from app.core.config import get_settings
 
@@ -39,6 +39,30 @@ async_session_factory = async_sessionmaker(
     class_=AsyncSession,
     expire_on_commit=False,
 )
+
+# Synchronous engine for Celery tasks (Celery runs synchronously)
+_sync_database_url = settings.DATABASE_URL.replace("+asyncpg", "+psycopg2")
+sync_engine = create_engine(
+    _sync_database_url,
+    echo=settings.DATABASE_ECHO,
+    pool_size=5,
+    max_overflow=5,
+    pool_pre_ping=True,
+)
+
+sync_session_factory = sessionmaker(
+    sync_engine,
+    class_=Session,
+    expire_on_commit=False,
+)
+
+
+def get_sync_session() -> Session:
+    """Create a synchronous database session for Celery tasks.
+
+    Returns a session that must be closed by the caller.
+    """
+    return sync_session_factory()
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:

@@ -1,7 +1,7 @@
 """Background tasks package."""
 
+from app.tasks.analysis import analyze_document_task
 from app.tasks.document import (
-    analyze_document_task,
     generate_report_task,
     process_document_task,
 )
