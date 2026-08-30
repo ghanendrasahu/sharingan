@@ -71,9 +71,7 @@ def upgrade() -> None:
             nullable=False,
             server_default="0.0",
         ),
-        sa.Column(
-            "risk_level", sa.String(20), nullable=False, server_default="low"
-        ),
+        sa.Column("risk_level", sa.String(20), nullable=False, server_default="low"),
         sa.Column("processing_time_ms", sa.Float(), nullable=True),
         sa.Column("error", sa.Text(), nullable=True),
         sa.Column(

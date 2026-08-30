@@ -61,15 +61,9 @@ def upgrade() -> None:
             nullable=False,
             server_default="0.0",
         ),
-        sa.Column(
-            "high_risk_count", sa.Integer(), nullable=False, server_default="0"
-        ),
-        sa.Column(
-            "medium_risk_count", sa.Integer(), nullable=False, server_default="0"
-        ),
-        sa.Column(
-            "low_risk_count", sa.Integer(), nullable=False, server_default="0"
-        ),
+        sa.Column("high_risk_count", sa.Integer(), nullable=False, server_default="0"),
+        sa.Column("medium_risk_count", sa.Integer(), nullable=False, server_default="0"),
+        sa.Column("low_risk_count", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("recommendations", sa.Text(), nullable=True),
         sa.Column("model_used", sa.String(100), nullable=True),
         sa.Column("processing_time_ms", sa.Float(), nullable=True),
@@ -107,14 +101,10 @@ def upgrade() -> None:
         sa.Column("risk_id", sa.String(255), nullable=False, unique=True, index=True),
         sa.Column("title", sa.String(500), nullable=False),
         sa.Column("description", sa.Text(), nullable=True),
-        sa.Column(
-            "severity", sa.String(20), nullable=False, server_default="low"
-        ),
+        sa.Column("severity", sa.String(20), nullable=False, server_default="low"),
         sa.Column("clause_reference", sa.String(255), nullable=True),
         sa.Column("recommendation", sa.Text(), nullable=True),
-        sa.Column(
-            "confidence", sa.Float(), nullable=False, server_default="0.0"
-        ),
+        sa.Column("confidence", sa.Float(), nullable=False, server_default="0.0"),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),

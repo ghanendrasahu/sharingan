@@ -52,9 +52,7 @@ def _get_search_service():
         model = settings.EMBEDDING_MODEL
 
         if api_key and provider_name == "openai":
-            embedding_provider = get_embedding_provider(
-                "openai", api_key=api_key, model=model
-            )
+            embedding_provider = get_embedding_provider("openai", api_key=api_key, model=model)
         else:
             embedding_provider = get_embedding_provider("mock")
 
@@ -276,7 +274,9 @@ async def index_document(
     processed_doc = ProcessedDocument(
         document_id=str(document_id),
         filename=document.original_filename,
-        format=DocumentFormat.PDF if document.content_type == "application/pdf" else DocumentFormat.DOCX,
+        format=DocumentFormat.PDF
+        if document.content_type == "application/pdf"
+        else DocumentFormat.DOCX,
         status=ProcessingStatus.COMPLETED,
         pages=doc_pages,
     )
@@ -311,9 +311,7 @@ async def index_document(
     # Index using semantic search service
     search_service = _get_search_service()
     try:
-        indexed_count = asyncio.run(
-            search_service.index_document(processed_doc, docproc_clauses)
-        )
+        indexed_count = asyncio.run(search_service.index_document(processed_doc, docproc_clauses))
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -347,9 +345,7 @@ async def get_search_stats(
     )
     total_documents = doc_count_result.scalar() or 0
 
-    clause_count_result = await db.execute(
-        select(func.count(DocumentClause.id))
-    )
+    clause_count_result = await db.execute(select(func.count(DocumentClause.id)))
     total_clauses = clause_count_result.scalar() or 0
 
     return SearchStatsResponse(

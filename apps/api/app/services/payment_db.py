@@ -71,9 +71,7 @@ class PaymentService:
         amount_paise = int(plan.price_inr * 100)
 
         # Get or create subscription
-        subscription = await self._get_or_create_subscription(
-            user_id, organization_id, plan_type
-        )
+        subscription = await self._get_or_create_subscription(user_id, organization_id, plan_type)
 
         # Try real Razorpay API first
         client = self._get_razorpay_client()
@@ -134,9 +132,7 @@ class PaymentService:
 
         # Find payment record
         result = await self.db.execute(
-            select(PaymentRecord).where(
-                PaymentRecord.razorpay_order_id == razorpay_order_id
-            )
+            select(PaymentRecord).where(PaymentRecord.razorpay_order_id == razorpay_order_id)
         )
         payment = result.scalar_one_or_none()
 
@@ -212,10 +208,13 @@ class PaymentService:
     async def get_subscription(self, user_id: str) -> Subscription | None:
         """Get user's current subscription."""
         result = await self.db.execute(
-            select(Subscription).where(
+            select(Subscription)
+            .where(
                 Subscription.user_id == user_id,
                 Subscription.status == SubscriptionStatus.ACTIVE,
-            ).order_by(Subscription.created_at.desc()).limit(1)
+            )
+            .order_by(Subscription.created_at.desc())
+            .limit(1)
         )
         return result.scalar_one_or_none()
 
@@ -232,9 +231,7 @@ class PaymentService:
             return True
         return False
 
-    async def get_payment_history(
-        self, user_id: str, limit: int = 10
-    ) -> list[PaymentRecord]:
+    async def get_payment_history(self, user_id: str, limit: int = 10) -> list[PaymentRecord]:
         """Get payment history for a user."""
         result = await self.db.execute(
             select(PaymentRecord)
@@ -292,9 +289,7 @@ class PaymentService:
 
         if order_id and payment_id:
             result = await self.db.execute(
-                select(PaymentRecord).where(
-                    PaymentRecord.razorpay_order_id == order_id
-                )
+                select(PaymentRecord).where(PaymentRecord.razorpay_order_id == order_id)
             )
             payment = result.scalar_one_or_none()
             if payment and payment.status == PaymentStatus.PENDING:
@@ -308,9 +303,7 @@ class PaymentService:
 
         if order_id:
             result = await self.db.execute(
-                select(PaymentRecord).where(
-                    PaymentRecord.razorpay_order_id == order_id
-                )
+                select(PaymentRecord).where(PaymentRecord.razorpay_order_id == order_id)
             )
             payment = result.scalar_one_or_none()
             if payment:
@@ -324,9 +317,7 @@ class PaymentService:
 
         if razorpay_sub_id:
             result = await self.db.execute(
-                select(Subscription).where(
-                    Subscription.razorpay_subscription_id == razorpay_sub_id
-                )
+                select(Subscription).where(Subscription.razorpay_subscription_id == razorpay_sub_id)
             )
             subscription = result.scalar_one_or_none()
             if subscription:
@@ -340,9 +331,7 @@ class PaymentService:
 
         if razorpay_sub_id:
             result = await self.db.execute(
-                select(Subscription).where(
-                    Subscription.razorpay_subscription_id == razorpay_sub_id
-                )
+                select(Subscription).where(Subscription.razorpay_subscription_id == razorpay_sub_id)
             )
             subscription = result.scalar_one_or_none()
             if subscription:
@@ -350,9 +339,7 @@ class PaymentService:
                 subscription.cancelled_at = datetime.now(tz=UTC)
                 await self.db.flush()
 
-    def _verify_webhook_signature(
-        self, payload: dict[str, Any], signature: str
-    ) -> bool:
+    def _verify_webhook_signature(self, payload: dict[str, Any], signature: str) -> bool:
         """Verify Razorpay webhook signature."""
         if not self.webhook_secret:
             return True

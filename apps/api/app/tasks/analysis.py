@@ -165,7 +165,9 @@ def analyze_document_task(
 
         session = get_sync_session()
         try:
-            existing_analysis = session.query(AnalysisResult).filter(AnalysisResult.id == analysis_id).first()
+            existing_analysis = (
+                session.query(AnalysisResult).filter(AnalysisResult.id == analysis_id).first()
+            )
             assert existing_analysis is not None, f"Analysis {analysis_id} not found"
 
             existing_analysis.status = AnalysisStatus.COMPLETED

@@ -161,7 +161,11 @@ async def generate_report(
 
     # Build sections
     sections = [
-        {"title": "Executive Summary", "content": analysis.summary or "No summary available.", "section_type": "text"},
+        {
+            "title": "Executive Summary",
+            "content": analysis.summary or "No summary available.",
+            "section_type": "text",
+        },
     ]
 
     # Risk assessment section
@@ -173,7 +177,9 @@ async def generate_report(
             if risk.recommendation:
                 risk_content += f"  *Recommendation:* {risk.recommendation}\n"
             risk_content += "\n"
-        sections.append({"title": "Risk Assessment", "content": risk_content, "section_type": "list"})
+        sections.append(
+            {"title": "Risk Assessment", "content": risk_content, "section_type": "list"}
+        )
 
     # Recommendations section
     recommendations = json.loads(analysis.recommendations) if analysis.recommendations else []
@@ -181,7 +187,9 @@ async def generate_report(
         rec_content = "## Recommendations\n\n"
         for i, rec in enumerate(recommendations, 1):
             rec_content += f"{i}. {rec}\n"
-        sections.append({"title": "Recommendations", "content": rec_content, "section_type": "list"})
+        sections.append(
+            {"title": "Recommendations", "content": rec_content, "section_type": "list"}
+        )
 
     risk_summary_data = {
         "total_risks": len(risks),
@@ -226,9 +234,7 @@ async def list_reports(
     doc_uuid = UUID(document_id)
 
     result = await db.execute(
-        select(Report)
-        .where(Report.document_id == doc_uuid)
-        .order_by(Report.created_at.desc())
+        select(Report).where(Report.document_id == doc_uuid).order_by(Report.created_at.desc())
     )
     reports = list(result.scalars().all())
 
@@ -246,9 +252,7 @@ async def get_report(
     db: DbSession,
 ) -> ReportDetailResponse:
     """Get a specific report by ID."""
-    result = await db.execute(
-        select(Report).where(Report.id == report_id)
-    )
+    result = await db.execute(select(Report).where(Report.id == report_id))
     report = result.scalar_one_or_none()
 
     if report is None:
@@ -272,9 +276,7 @@ async def export_report(
     """
     report_id = UUID(request.report_id)
 
-    result = await db.execute(
-        select(Report).where(Report.id == report_id)
-    )
+    result = await db.execute(select(Report).where(Report.id == report_id))
     report = result.scalar_one_or_none()
 
     if report is None:
@@ -367,9 +369,7 @@ async def delete_report(
     db: DbSession,
 ) -> ReportDeleteResponse:
     """Delete a report."""
-    result = await db.execute(
-        select(Report).where(Report.id == report_id)
-    )
+    result = await db.execute(select(Report).where(Report.id == report_id))
     report = result.scalar_one_or_none()
 
     if report is None:

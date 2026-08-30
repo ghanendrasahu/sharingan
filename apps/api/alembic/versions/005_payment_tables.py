@@ -22,26 +22,50 @@ def upgrade() -> None:
         "subscriptions",
         sa.Column("id", sa.String(36), primary_key=True),
         sa.Column("user_id", sa.String(36), sa.ForeignKey("users.id"), nullable=False, index=True),
-        sa.Column("organization_id", sa.String(36), sa.ForeignKey("organizations.id"), nullable=False, index=True),
+        sa.Column(
+            "organization_id",
+            sa.String(36),
+            sa.ForeignKey("organizations.id"),
+            nullable=False,
+            index=True,
+        ),
         sa.Column("plan_type", sa.String(50), nullable=False, server_default="free"),
         sa.Column("status", sa.String(50), nullable=False, server_default="active"),
         sa.Column("credits_remaining", sa.Integer, nullable=False, server_default="5"),
         sa.Column("credits_used", sa.Integer, nullable=False, server_default="0"),
         sa.Column("razorpay_subscription_id", sa.String(255), nullable=True),
-        sa.Column("started_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "started_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.Column("expires_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("cancelled_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
     )
 
     # Payment records table
     op.create_table(
         "payment_records",
         sa.Column("id", sa.String(36), primary_key=True),
-        sa.Column("subscription_id", sa.String(36), sa.ForeignKey("subscriptions.id"), nullable=False, index=True),
+        sa.Column(
+            "subscription_id",
+            sa.String(36),
+            sa.ForeignKey("subscriptions.id"),
+            nullable=False,
+            index=True,
+        ),
         sa.Column("user_id", sa.String(36), sa.ForeignKey("users.id"), nullable=False, index=True),
-        sa.Column("organization_id", sa.String(36), sa.ForeignKey("organizations.id"), nullable=False, index=True),
+        sa.Column(
+            "organization_id",
+            sa.String(36),
+            sa.ForeignKey("organizations.id"),
+            nullable=False,
+            index=True,
+        ),
         sa.Column("amount_inr", sa.Float, nullable=False),
         sa.Column("currency", sa.String(10), nullable=False, server_default="INR"),
         sa.Column("status", sa.String(50), nullable=False, server_default="pending"),
@@ -49,7 +73,9 @@ def upgrade() -> None:
         sa.Column("razorpay_order_id", sa.String(255), nullable=True, index=True),
         sa.Column("razorpay_payment_id", sa.String(255), nullable=True, index=True),
         sa.Column("razorpay_signature", sa.Text, nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
     )
 
@@ -60,8 +86,12 @@ def upgrade() -> None:
         sa.Column("event_id", sa.String(255), nullable=False, unique=True, index=True),
         sa.Column("event_type", sa.String(100), nullable=False),
         sa.Column("payload", sa.Text, nullable=False),
-        sa.Column("processed_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "processed_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
     )
 
 
