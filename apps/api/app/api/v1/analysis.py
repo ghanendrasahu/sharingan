@@ -3,22 +3,24 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Annotated
+from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.celery_config import celery_app
 from app.core.database import get_db
+from app.models.analysis import AnalysisResult, AnalysisRisk, AnalysisStatus
+from app.models.document import Document
+from app.models.organization import MemberRole
 from app.schemas.analysis import (
     AnalysisRequest,
     AnalysisResultResponse,
     AnalysisStatusResponse,
-    KeyTermResponse,
-    ReportResponse,
     RiskFindingResponse,
-    SearchRequest,
-    SearchResponse,
-    SearchResultResponse,
 )
+from app.tasks.analysis import analyze_document_task
 
 if TYPE_CHECKING:
     from app.api.deps import CurrentUser
@@ -26,6 +28,40 @@ if TYPE_CHECKING:
 router = APIRouter(prefix="/analysis", tags=["analysis"])
 
 DbSession = Annotated[AsyncSession, Depends(get_db)]
+
+
+async def _verify_document_access(
+    document_id: UUID,
+    organization_id: UUID,
+    current_user: CurrentUser,
+    db: AsyncSession,
+) -> Document:
+    """Verify user has access to the document."""
+    from app.api.deps import RequireRole
+
+    # Check organization membership
+    membership_check = RequireRole(
+        MemberRole.OWNER, MemberRole.ADMIN, MemberRole.MEMBER, MemberRole.VIEWER
+    )
+    await membership_check(organization_id, current_user, db)
+
+    # Get document
+    result = await db.execute(
+        select(Document).where(
+            Document.id == document_id,
+            Document.organization_id == organization_id,
+            Document.deleted_at.is_(None),
+        )
+    )
+    document = result.scalar_one_or_none()
+
+    if document is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found",
+        )
+
+    return document
 
 
 @router.post("/analyze", response_model=AnalysisStatusResponse)
@@ -39,17 +75,47 @@ async def start_analysis(
     Triggers a background task to analyze the document.
     Use the task_id to poll for status and results.
     """
-    # TODO: Verify document exists and user has access
-    # TODO: Trigger background task
+    document_id = UUID(request.document_id)
 
-    # For now, return mock response
+    # Verify document exists and user has access
+    doc_result = await db.execute(
+        select(Document).where(
+            Document.id == document_id,
+            Document.deleted_at.is_(None),
+        )
+    )
+    document = doc_result.scalar_one_or_none()
+
+    if document is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found",
+        )
+
+    # Check document is processed
+    from app.models.document import DocumentStatus
+
+    if document.status != DocumentStatus.PROCESSED:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Document must be processed before analysis. Current status: {document.status}",
+        )
+
+    # Trigger Celery task
+    task = analyze_document_task.delay(
+        document_id=str(document_id),
+        analysis_type=request.analysis_type,
+        user_id=str(current_user.id),
+        organization_id=str(document.organization_id),
+    )
+
     return AnalysisStatusResponse(
-        task_id="task_mock_123",
-        document_id=request.document_id,
+        task_id=task.id,
+        document_id=str(document_id),
         status="pending",
         progress=0.0,
         message="Analysis task created",
-        created_at="2024-01-01T00:00:00Z",
+        created_at=document.created_at.isoformat() if document.created_at else "",
     )
 
 
@@ -62,24 +128,53 @@ async def get_analysis_status(
 
     Returns the current status and progress of an analysis task.
     """
-    # TODO: Get actual task status from Celery
+    # Query Celery for task status
+    result = celery_app.AsyncResult(task_id)
 
-    # For now, return mock response
+    # Map Celery states to our status
+    status_map = {
+        "PENDING": "pending",
+        "STARTED": "processing",
+        "PROCESSING": "processing",
+        "COMPLETED": "completed",
+        "FAILED": "failed",
+        "RETRY": "retrying",
+        "CANCELLED": "cancelled",
+    }
+
+    task_status = status_map.get(result.state, "unknown")
+    progress = 0.0
+    message = ""
+    error = None
+
+    if result.info:
+        if isinstance(result.info, dict):
+            progress = result.info.get("progress", 0.0)
+            message = result.info.get("message", "")
+            error = result.info.get("error")
+        elif isinstance(result.info, str):
+            error = result.info
+
+    if result.state == "COMPLETED":
+        progress = 1.0
+        message = "Analysis completed"
+    elif result.state == "FAILED":
+        error = str(result.info) if result.info else "Task failed"
+
     return AnalysisStatusResponse(
         task_id=task_id,
-        document_id="doc_mock",
-        status="completed",
-        progress=1.0,
-        message="Analysis completed",
-        created_at="2024-01-01T00:00:00Z",
-        started_at="2024-01-01T00:00:01Z",
-        completed_at="2024-01-01T00:00:10Z",
+        document_id=result.info.get("document_id", "") if isinstance(result.info, dict) else "",
+        status=task_status,
+        progress=progress,
+        message=message,
+        created_at="",
+        error=error,
     )
 
 
 @router.get("/result/{document_id}", response_model=AnalysisResultResponse)
 async def get_analysis_result(
-    document_id: str,
+    document_id: UUID,
     current_user: CurrentUser,
     db: DbSession,
 ) -> AnalysisResultResponse:
@@ -87,98 +182,108 @@ async def get_analysis_result(
 
     Returns the full analysis result including risks, terms, and recommendations.
     """
-    # TODO: Get actual analysis result from database
+    # Get latest completed analysis for this document
+    result = await db.execute(
+        select(AnalysisResult)
+        .where(
+            AnalysisResult.document_id == document_id,
+            AnalysisResult.status == AnalysisStatus.COMPLETED,
+        )
+        .order_by(AnalysisResult.created_at.desc())
+        .limit(1)
+    )
+    analysis = result.scalar_one_or_none()
 
-    # For now, return mock response
+    if analysis is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No completed analysis found for this document",
+        )
+
+    # Get risk findings
+    risks_result = await db.execute(
+        select(AnalysisRisk)
+        .where(AnalysisRisk.analysis_id == analysis.id)
+        .order_by(AnalysisRisk.confidence.desc())
+    )
+    risks = list(risks_result.scalars().all())
+
+    # Parse recommendations
+    import json
+
+    recommendations = []
+    if analysis.recommendations:
+        try:
+            recommendations = json.loads(analysis.recommendations)
+        except (json.JSONDecodeError, TypeError):
+            recommendations = []
+
     return AnalysisResultResponse(
-        analysis_id="analysis_mock_123",
-        document_id=document_id,
-        analysis_type="full_analysis",
-        summary="This is a sample legal document analysis.",
-        overall_risk_score=0.65,
+        analysis_id=str(analysis.id),
+        document_id=str(analysis.document_id),
+        analysis_type=analysis.analysis_type,
+        summary=analysis.summary or "",
+        overall_risk_score=analysis.overall_risk_score,
         risk_findings=[
             RiskFindingResponse(
-                risk_id="risk_1",
-                title="Unlimited Liability Clause",
-                description="The contract contains unlimited liability provisions.",
-                severity="high",
-                recommendation="Consider adding liability caps",
+                risk_id=risk.risk_id,
+                title=risk.title,
+                description=risk.description or "",
+                severity=risk.severity,
+                clause_reference=risk.clause_reference,
+                recommendation=risk.recommendation or "",
+                confidence=risk.confidence,
             )
+            for risk in risks
         ],
-        key_terms=[
-            KeyTermResponse(
-                term="Agreement",
-                definition="This contract between parties",
-            )
-        ],
-        recommendations=[
-            "Review high-risk clauses",
-            "Add liability limitations",
-        ],
-        high_risk_count=1,
-        medium_risk_count=2,
-        low_risk_count=3,
-        processing_time_ms=5000.0,
+        key_terms=[],  # Key terms not stored in DB yet
+        recommendations=recommendations,
+        high_risk_count=analysis.high_risk_count,
+        medium_risk_count=analysis.medium_risk_count,
+        low_risk_count=analysis.low_risk_count,
+        processing_time_ms=analysis.processing_time_ms,
     )
 
 
-@router.post("/report/{document_id}", response_model=ReportResponse)
-async def generate_report(
-    document_id: str,
+@router.get("/risks/{analysis_id}", response_model=list[RiskFindingResponse])
+async def get_analysis_risks(
+    analysis_id: UUID,
     current_user: CurrentUser,
     db: DbSession,
-) -> ReportResponse:
-    """Generate analysis report for a document.
-
-    Creates a formatted report from the analysis results.
-    """
-    # TODO: Generate actual report
-
-    # For now, return mock response
-    return ReportResponse(
-        report_id="report_mock_123",
-        document_id=document_id,
-        report_type="full_analysis",
-        title="Legal Analysis Report",
-        executive_summary="This document has been analyzed for legal risks.",
-        risk_summary={
-            "total_risks": 6,
-            "high_count": 1,
-            "medium_count": 2,
-            "low_count": 3,
-            "overall_risk_score": 0.65,
-        },
-        sections=[],
-        generated_at="2024-01-01T00:00:00Z",
+) -> list[RiskFindingResponse]:
+    """Get risks for a specific analysis."""
+    # Verify analysis exists
+    analysis_result = await db.execute(
+        select(AnalysisResult).where(AnalysisResult.id == analysis_id)
     )
+    analysis = analysis_result.scalar_one_or_none()
 
+    if analysis is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Analysis not found",
+        )
 
-@router.post("/search", response_model=SearchResponse)
-async def search_documents(
-    request: SearchRequest,
-    current_user: CurrentUser,
-    db: DbSession,
-) -> SearchResponse:
-    """Semantic search across documents.
-
-    Find similar clauses and content across all indexed documents.
-    """
-    # TODO: Implement semantic search
-
-    # For now, return mock response
-    return SearchResponse(
-        query=request.query,
-        results=[
-            SearchResultResponse(
-                content="Sample matching clause...",
-                score=0.95,
-                document_id="doc_123",
-                clause_id="clause_456",
-            )
-        ],
-        total_results=1,
-        processing_time_ms=100.0,
+    # Get risks
+    risks_result = await db.execute(
+        select(AnalysisRisk)
+        .where(AnalysisRisk.analysis_id == analysis_id)
+        .order_by(AnalysisRisk.confidence.desc())
     )
+    risks = list(risks_result.scalars().all())
+
+    return [
+        RiskFindingResponse(
+            risk_id=risk.risk_id,
+            title=risk.title,
+            description=risk.description or "",
+            severity=risk.severity,
+            clause_reference=risk.clause_reference,
+            recommendation=risk.recommendation or "",
+            confidence=risk.confidence,
+        )
+        for risk in risks
+    ]
 
 
 @router.delete("/cancel/{task_id}")
@@ -187,6 +292,7 @@ async def cancel_analysis(
     current_user: CurrentUser,
 ) -> dict[str, str]:
     """Cancel a running analysis task."""
-    # TODO: Cancel actual task
+    # Revoke the Celery task
+    celery_app.control.revoke(task_id, terminate=True, signal="SIGTERM")
 
     return {"message": f"Task {task_id} cancelled", "task_id": task_id}
