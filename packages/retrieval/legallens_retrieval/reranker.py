@@ -18,7 +18,7 @@ class CrossEncoderReranker:
         """Load cross-encoder model on demand."""
         if self._model is None:
             try:
-                from sentence_transformers import CrossEncoder
+                from sentence_transformers import CrossEncoder  # type: ignore[import-untyped]
 
                 self._model = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
                 logger.info("Loaded cross-encoder model")

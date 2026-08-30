@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from langgraph.graph import END, StateGraph
 
@@ -19,6 +19,9 @@ from legallens_ai.nodes import (
     verify_evidence,
 )
 from legallens_ai.state import AnalysisState, create_initial_state
+
+if TYPE_CHECKING:
+    from langgraph.graph.state import CompiledStateGraph
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +40,7 @@ def _route_after_quality(state: AnalysisState) -> str:
     return END
 
 
-def build_analysis_graph() -> StateGraph:
+def build_analysis_graph() -> CompiledStateGraph:
     """Build the legal document analysis graph.
 
     Pipeline:

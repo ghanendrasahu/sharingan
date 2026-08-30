@@ -39,7 +39,7 @@ def calculate_risk_score(state: AnalysisState) -> dict[str, Any]:
     verified_citations = state.get("verified_citations", [])
 
     # Calculate dimension scores
-    dimensions = {}
+    dimensions: dict[str, float] = {}
 
     # Legal severity: based on risk findings
     dimensions["legal_severity"] = _calculate_legal_severity(risk_findings)

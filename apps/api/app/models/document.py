@@ -200,10 +200,20 @@ class DocumentClause(UUIDMixin, TimestampMixin, Base):
         Text,
         nullable=False,
     )
+    content: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+        default="",
+    )
     clause_type: Mapped[str] = mapped_column(
         String(50),
         nullable=False,
         default="other",
+    )
+    clause_index: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
     )
     risk_level: Mapped[str | None] = mapped_column(
         String(20),
