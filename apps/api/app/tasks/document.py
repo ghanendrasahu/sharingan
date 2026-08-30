@@ -127,7 +127,19 @@ def process_document_task(
         finally:
             session.close()
 
-        # Step 5: Complete
+        # Step 5: Trigger analysis task
+        task_info.update_progress(0.9, "Triggering AI analysis...")
+        _update_task_state(self, task_info)
+
+        from app.tasks.analysis import analyze_document_task
+
+        analyze_document_task.delay(
+            document_id=document_id,
+            user_id=user_id,
+            organization_id=organization_id,
+        )
+
+        # Complete
         task_info.update_progress(1.0, "Processing complete")
         task_info.complete(
             result={
