@@ -30,9 +30,9 @@ The system must not represent itself as a lawyer and must not claim that an AI-g
 
 The product should clearly communicate when professional legal review is appropriate.
 
-0. NON-NEGOTIABLE ENGINEERING RULES
-
-Follow these rules throughout the entire project.
+================================================================================
+SECTION 1: NON-NEGOTIABLE ENGINEERING RULES
+================================================================================
 
 Rule 1 — Production quality
 
@@ -73,2568 +73,708 @@ Only then move to the next milestone.
 
 Never combine unrelated milestones into one huge commit.
 
-1. GIT WORKFLOW
+================================================================================
+SECTION 2: COMPLETED MILESTONES (DO NOT REIMPLEMENT)
+================================================================================
 
-Before coding:
+The following milestones have been completed and pushed to main:
 
-git status
-git remote -v
-git branch --show-current
+MILESTONE 01 — Repository Foundation ✅ COMPLETE
+- monorepo structure
+- Docker / Docker Compose
+- Python environment with pyproject.toml
+- React environment
+- linting (ruff, eslint)
+- formatting
+- pre-commit hooks
+- .env.example
+- README
+- Makefile
 
-If a remote does not exist, stop and report it.
+MILESTONE 02 — Database Foundation ✅ COMPLETE
+- PostgreSQL with pgvector
+- SQLAlchemy async models
+- Alembic migrations
+- base models with UUID, timestamps, soft delete
+- health checks
 
-Use meaningful commit messages.
+MILESTONE 03 — Authentication ✅ COMPLETE
+- registration with email/password
+- login with JWT
+- refresh tokens
+- logout
+- bcrypt password hashing
+- RBAC (OWNER, ADMIN, MEMBER, VIEWER)
+- IDOR protection
 
-Examples:
+MILESTONE 04 — Organizations ✅ COMPLETE
+- organizations table
+- organization_members with roles
+- tenant isolation
+- IDOR tests
 
-feat: initialize production monorepo
-feat: implement authentication
-feat: add document upload pipeline
-feat: implement pdf text extraction
-feat: add clause segmentation
-feat: implement legal retrieval
-feat: add contract risk analysis
-feat: add citation verification
-feat: implement analysis dashboard
-feat: add razorpay payments
-feat: add organization workspaces
-feat: harden document security
-test: add legal analysis evaluation suite
-ci: add production github actions
-docs: add deployment documentation
+MILESTONE 05 — Object Storage ✅ COMPLETE
+- MinIO for local development
+- S3 abstraction layer
+- secure uploads with validation
+- signed URLs
+- document metadata
 
-Never use:
+MILESTONE 06 — Document Upload ✅ COMPLETE
+- PDF and DOCX upload
+- MIME type validation
+- file signature validation
+- size limits
+- upload API with org scoping
+- duplicate detection via file hash
 
-update
-changes
-fix
-stuff
-final
-test
+MILESTONE 07 — Document Processing Package ✅ COMPLETE (exists in packages/)
+- PDF extraction (pdf_extractor.py)
+- DOCX extraction (docx_extractor.py)
+- OCR abstraction (ocr.py)
+- page preservation
+- structured document representation
+- async processing wrapper
 
-as standalone commit messages.
+MILESTONE 08 — Clause Segmentation Package ✅ COMPLETE (exists in packages/)
+- heading detection
+- numbered clauses (1., 1.1, (a), (i))
+- nested clauses
+- definitions
+- schedules and annexures
+- page references
+- clause_models.py with ClauseType enum
 
-Before every commit:
+MILESTONE 24 — Usage System ✅ COMPLETE
+- usage tracking models
+- credits system
+- plan limits
+- usage service with check_usage_limit
 
-git diff
-git status
+MILESTONE 27 — Audit Logs ✅ COMPLETE
+- audit events table
+- organization filtering
+- secure logging
+- audit API endpoints
 
-Never commit:
+MILESTONE 28 — Security Hardening ✅ COMPLETE
+- security headers middleware
+- rate limiting (100 req/min)
+- input sanitization
+- XSS prevention
 
-.env
-API keys
-passwords
-private certificates
-production credentials
-uploaded contracts
-personal data
-model secrets
-database credentials
-Razorpay secrets
+MILESTONE 30 — Observability ✅ COMPLETE
+- structured logging (structlog)
+- metrics collection (prometheus)
+- request IDs
+- LLM cost tracking helpers
+- analysis latency tracking
 
-Maintain:
+MILESTONE 31 — CI/CD ✅ COMPLETE
+- GitHub Actions CI workflow
+- lint, test, security scan, Docker build jobs
+- deployment workflow
 
-.env.example
+MILESTONE 32 — Production Deployment ✅ COMPLETE
+- production Dockerfiles (multi-stage, non-root)
+- docker-compose.prod.yml
+- nginx configuration
+- health checks
+- backup scripts
 
-with safe placeholder values.
+================================================================================
+SECTION 3: REMAINING MILESTONES (PRIORITY ORDER)
+================================================================================
 
-After every successful milestone:
+Execute these milestones in order. Each builds on the previous.
 
-git add .
-git commit -m "<meaningful message>"
-git push origin <current-branch>
+--------------------------------------------------------------------------------
+PHASE A: Wire Existing Packages to API Layer
+--------------------------------------------------------------------------------
 
-If push fails, diagnose the failure before continuing.
+MILESTONE A1 — Connect Document Processing to Celery Tasks
 
-2. PRODUCT NAME
-
-Use the working name:
-
-LegalLens India
-
-Architecture must make renaming easy later.
-
-3. PRODUCT SCOPE
-
-Initial supported document types:
-
-Employment agreements
-NDAs
-Rent/lease agreements
-Vendor/service agreements
-
-Architecture must support adding:
-
-Founder agreements
-Consultancy agreements
-Offer letters
-Term sheets
-Partnership agreements
-SaaS agreements
-IP assignment agreements
-Privacy policies
-Freelancer agreements
-
-without rewriting the core pipeline.
-
-4. CORE USER FLOW
-
-Implement this complete flow:
-
-User
- ↓
-Register/Login
- ↓
-Dashboard
- ↓
-Upload PDF/DOCX
- ↓
-File validation
- ↓
-Secure object storage
- ↓
-Document processing job
- ↓
-Text extraction
- ↓
-OCR fallback if required
- ↓
-Page reconstruction
- ↓
-Document structure detection
- ↓
-Clause segmentation
- ↓
-Document classification
- ↓
-Legal retrieval
- ↓
-Clause analysis
- ↓
-Risk analysis
- ↓
-Missing clause analysis
- ↓
-Citation verification
- ↓
-Risk scoring
- ↓
-Recommendation generation
- ↓
-Quality validation
- ↓
-Analysis stored
- ↓
-Dashboard results
- ↓
-Detailed clause view
- ↓
-Ask questions about contract
- ↓
-Export PDF report
-5. TECHNOLOGY STACK
-
-Use the following stack unless there is a strong technical reason to change it.
-
-Frontend
-React
-TypeScript
-Vite
-Tailwind CSS
-shadcn/ui
-TanStack Query
-React Router
-React Hook Form
-Zod
-Backend
-Python
-FastAPI
-Pydantic
-SQLAlchemy
-Alembic
-PostgreSQL
-Redis
-Celery
-AI
-LangGraph
-LLM provider abstraction
-Structured outputs
-Embeddings
-Hybrid retrieval
-Reranking
-Vector database
-
-Start with:
-
-PostgreSQL + pgvector
-
-Do not introduce Pinecone unless scale or operational requirements justify it.
-
-Design the retrieval interface so Pinecone/OpenSearch/etc. can be added later.
-
-Storage
-
-Use S3-compatible object storage.
-
-Local development may use MinIO.
-
-Infrastructure
-Docker
-Docker Compose
-GitHub Actions
-Nginx or cloud load balancer
-
-Kubernetes is optional and should NOT be introduced prematurely.
-
-6. REPOSITORY STRUCTURE
-
-Create:
-
-legallens-india/
-│
-├── apps/
-│   ├── api/
-│   └── web/
-│
-├── packages/
-│   ├── ai/
-│   ├── legal/
-│   ├── document_processing/
-│   ├── retrieval/
-│   └── shared/
-│
-├── workers/
-│   ├── document_worker/
-│   └── analysis_worker/
-│
-├── infrastructure/
-│   ├── docker/
-│   ├── nginx/
-│   └── terraform/
-│
-├── data/
-│   ├── raw/
-│   ├── processed/
-│   └── evaluation/
-│
-├── tests/
-│   ├── unit/
-│   ├── integration/
-│   ├── security/
-│   └── evaluation/
-│
-├── docs/
-│
-├── scripts/
-│
-├── docker-compose.yml
-├── .env.example
-├── .gitignore
-├── README.md
-├── Makefile
-└── LICENSE
-
-Keep responsibilities separated.
-
-7. ARCHITECTURE
+Current state: packages/document_processing has real extraction code, but
+apps/api/app/tasks/document.py uses time.sleep() simulations.
 
 Implement:
+- Import legallens_docproc.processor in tasks/document.py
+- Replace simulate steps with real extraction calls
+- process_document_task calls process_document_async()
+- Store extraction results in database (document_pages, document_clauses tables)
+- Update task progress in real-time
+- Handle errors with proper retry logic
 
-                    React
-                      │
-                      ▼
-                 FastAPI API
-                      │
-          ┌───────────┼───────────┐
-          │           │           │
-          ▼           ▼           ▼
-       Postgres     Redis      Object Storage
-          │           │
-          │           ▼
-          │         Workers
-          │           │
-          │           ▼
-          │      Analysis Engine
-          │           │
-          │       LangGraph
-          │           │
-          │     ┌─────┴─────┐
-          │     ▼           ▼
-          │   Legal RAG    LLM
-          │     │
-          │     ▼
-          │ Indian Legal Corpus
-          │
-          ▼
-       Analysis Data
-8. DATABASE DESIGN
+Files to modify:
+- apps/api/app/tasks/document.py
+- apps/api/app/models/document.py (add pages/clauses if needed)
 
-Implement production-ready migrations.
+Tests:
+- Upload a real PDF, verify text extraction
+- Upload a real DOCX, verify text extraction
+- Verify page/clause data stored correctly
 
-Tables should include:
+Commit: feat: wire real document extraction into Celery tasks
 
-users
-organizations
-organization_members
+--------------------------------------------------------------------------------
+MILESTONE A2 — Connect Clause Segmentation to Pipeline
 
-documents
-document_versions
-document_pages
-document_clauses
-
-analysis_runs
-analyses
-risks
-missing_clauses
-recommendations
-citations
-
-legal_sources
-legal_chunks
-
-subscriptions
-payments
-usage_records
-
-audit_logs
-
-Use:
-
-UUID identifiers
-foreign keys
-indexes
-timestamps
-soft deletion where appropriate
-unique constraints
-appropriate cascading behavior
-
-Every tenant-owned resource must include organization ownership where appropriate.
-
-9. AUTHENTICATION
+Current state: clause_segmenter.py exists with 305 lines of real regex patterns,
+but is not called by the processing pipeline.
 
 Implement:
+- After text extraction, call clause_segmenter.segment_clauses()
+- Store clauses in document_clauses table
+- Include page references and clause types
+- Handle nested clauses properly
 
-registration
-login
-logout
-refresh tokens
-password hashing
-email verification abstraction
-password reset abstraction
-JWT authentication
-RBAC
+Files to modify:
+- apps/api/app/tasks/document.py
+- apps/api/app/models/document.py
 
-Roles:
+Tests:
+- Verify clauses extracted with correct types
+- Verify page references preserved
+- Test nested clause handling
 
-OWNER
-ADMIN
-MEMBER
-VIEWER
+Commit: feat: connect clause segmentation to document pipeline
 
-Implement authorization at the API layer.
+--------------------------------------------------------------------------------
+MILESTONE A3 — Connect AI Analyzer to Analysis Tasks
 
-Do not trust frontend permissions.
-
-Prevent IDOR:
-
-GET /documents/{id}
-
-must verify that the authenticated user has access to the document.
-
-10. ORGANIZATIONS
-
-Implement multi-tenancy.
-
-A user may belong to multiple organizations.
-
-Organization members should have roles.
-
-Every organization must have isolated:
-
-documents
-analyses
-billing
-usage
-audit logs
-
-No organization can access another organization's data.
-
-Add tests specifically for tenant isolation.
-
-11. DOCUMENT UPLOAD
+Current state: ai_analyzer.py exists with OpenAI/Groq provider abstraction,
+but analyze_document_task uses time.sleep() simulation.
 
 Implement:
-
-POST /api/v1/documents
-
-Accept:
-
-PDF
-DOCX
-
-Validate:
-
-MIME type
-file extension
-file size
-file signature
-page count
-document integrity
-
-Do not trust:
-
-filename
-Content-Type
-extension
-
-alone.
-
-Implement configurable upload limits.
-
-Store originals in object storage.
-
-Do not store binary documents directly in PostgreSQL.
-
-12. DOCUMENT SECURITY
-
-Treat every uploaded document as untrusted input.
-
-Protect against:
-
-malicious PDFs
-zip bombs
-oversized documents
-prompt injection
-XSS through extracted text
-malicious filenames
-path traversal
-SSRF
-parser vulnerabilities
-
-Sanitize filenames.
-
-Never construct filesystem paths directly from user-controlled filenames.
-
-Never execute document content.
-
-13. DOCUMENT PROCESSING
-
-Build:
-
-Document
- ↓
-File validator
- ↓
-Text extraction
- ↓
-OCR fallback
- ↓
-Layout reconstruction
- ↓
-Page segmentation
- ↓
-Paragraph extraction
- ↓
-Heading detection
- ↓
-Clause segmentation
-
-Preserve:
-
-page number
-paragraph number
-clause number
-section heading
-character offsets where practical
-
-This information is required for citations.
-
-14. PDF EXTRACTION
-
-Support native text extraction first.
-
-If the PDF is scanned:
-
-PDF
- ↓
-OCR
- ↓
-structured text
-
-Create a provider abstraction so OCR providers can be changed later.
-
-Do not hard-code one vendor into the entire application.
-
-15. CLAUSE SEGMENTATION
-
-Convert contracts into structured clauses.
-
-Example:
-
-{
-  "clause_id": "12.2",
-  "title": "Confidentiality",
-  "text": "...",
-  "page_start": 7,
-  "page_end": 7,
-  "parent_clause": "12"
-}
-
-Handle:
-
-numbered clauses
-nested clauses
-bullet points
-schedules
-annexures
-tables
-definitions
-signatures
-
-Do not assume every document follows one numbering convention.
-16. DOCUMENT CLASSIFICATION
-
-Classify documents into:
-
-employment
-nda
-lease
-vendor
-consultancy
-founder
-term_sheet
-other
-unknown
-
-Return confidence.
-
-If confidence is low:
-
-unknown
-
-Do not force a classification.
-
-17. LEGAL KNOWLEDGE ARCHITECTURE
-
-Create a versioned legal knowledge system.
-
-Sources may include authoritative:
-
-statutes
-rules
-regulations
-government notifications
-official government materials
-court judgments
-other legally authoritative sources
-
-Prioritize primary sources.
-
-Do not use random blogs as authoritative legal evidence.
-
-Every source should contain metadata.
-
-Example:
-
-{
-  "source_id": "...",
-  "title": "...",
-  "source_type": "statute",
-  "jurisdiction": "India",
-  "court": null,
-  "section": "27",
-  "effective_from": "...",
-  "effective_until": null,
-  "source_url": "...",
-  "retrieved_at": "..."
-}
-18. LEGAL CORPUS
-
-Initial corpus categories:
-
-Indian Contract Act
-Companies Act
-Information Technology Act
-Arbitration and Conciliation Act
-Specific Relief Act
-Copyright Act
-Trade Marks Act
-Digital Personal Data Protection framework
-Employment-related central/state legislation where relevant
-
-Do NOT assume a central law applies identically to every employment or tenancy situation.
-
-Jurisdiction must be part of the analysis.
-
-19. LEGAL CORPUS VERSIONING
-
-Every legal source must have:
-
-effective date
-retrieval date
-source URL
-version
-status
-
-The system must be able to distinguish:
-
-current law
-historical law
-superseded law
-
-Do not silently use stale legal information.
-
-20. LEGAL RAG
-
-Implement hybrid retrieval:
-
-Query
- │
- ├── Dense vector search
- │
- ├── BM25/keyword search
- │
- └── Metadata filtering
- │
- ▼
-Candidate documents
- │
- ▼
-Reranker
- │
- ▼
-Top evidence
-
-Use metadata such as:
-
-jurisdiction
-document_type
-law
-section
-court
-date
-source_type
-21. RETRIEVAL QUALITY
-
-Measure:
-
-Recall@5
-Recall@10
-MRR
-NDCG
-
-Create retrieval tests.
-
-A retrieval system that returns plausible but legally irrelevant material must be considered a failure.
-
-22. LANGGRAPH ANALYSIS ENGINE
-
-Do not build one giant agent.
-
-Create a deterministic graph:
-
-START
- ↓
-DocumentClassifier
- ↓
-ClauseExtractor
- ↓
-ClauseRouter
- ↓
- ┌─────────────────────┐
- │                     │
- ▼                     ▼
-RiskAnalyzer      MissingClauseAnalyzer
- │                     │
- └──────────┬──────────┘
-            ▼
-      LegalRetriever
-            ▼
-     EvidenceVerifier
-            ▼
-        RiskScorer
-            ▼
- RecommendationGenerator
-            ▼
-       QualityChecker
-            ▼
-          REPORT
-
-Each node must have a single responsibility.
-
-23. LANGGRAPH STATE
-
-Use strongly typed state.
-
-Conceptually:
-
-class AnalysisState(TypedDict):
-    document_id: str
-    document_type: str
-    jurisdiction: str
-    clauses: list
-    current_clause: dict
-    retrieved_evidence: list
-    identified_risks: list
-    missing_clauses: list
-    recommendations: list
-    citations: list
-    validation_errors: list
-    confidence: float
-
-Use Pydantic/domain models where appropriate.
-
-24. STRUCTURED LLM OUTPUTS
-
-Never rely on:
-
-"Please return JSON"
-
-alone.
-
-Define schemas.
-
-Example:
-
-class Risk(BaseModel):
-    clause_id: str
-    category: str
-    severity: str
-    explanation: str
-    evidence_ids: list[str]
-    confidence: float
-
-Validate every model response.
-
-Reject malformed output.
-
-Never silently accept invalid model output.
-
-25. RISK TAXONOMY
-
-Create controlled categories.
-
-Legal
-potentially_unenforceable
-statutory_conflict
-jurisdiction_issue
-ambiguity
-contradiction
-missing_requirement
-Commercial
-unlimited_liability
-unfavorable_payment
-automatic_renewal
-termination_risk
-one_sided_obligation
-indemnity_risk
-IP
-ownership
-assignment
-licensing
-background_ip
-third_party_ip
-Confidentiality
-scope
-duration
-exceptions
-return_of_information
-Privacy
-personal_data
-processing
-retention
-security
-cross_border_transfer
-Operational
-notice
-sla
-deliverables
-renewal
-reporting
-26. RISK SCORING
-
-Do not allow an LLM to arbitrarily invent the final numerical score.
-
-Build a deterministic scoring layer.
-
-Dimensions:
-
-legal severity
-financial exposure
-business impact
-uncertainty
-ambiguity
-enforceability concern
-
-Example initial heuristic:
-
-30% legal severity
-25% enforceability uncertainty
-20% financial exposure
-15% business impact
-10% ambiguity
-
-Make weights configurable.
-
-Document clearly that the score is a product heuristic and not an objective legal determination.
-
-Use:
-
-0–29    Low
-30–49   Moderate
-50–69   High
-70–100  Critical
-
-Calibrate later using lawyer-reviewed data.
-
-27. MISSING CLAUSE ENGINE
-
-Do not say:
-
-"This clause is legally required"
-
-unless the evidence actually establishes that.
-
-Instead use:
-
-Potentially missing
-Recommended for consideration
-May be relevant depending on circumstances
-
-Example:
-
-Potentially missing:
-Intellectual property assignment
-
-Why it may matter:
-The agreement does not appear to clearly address ownership
-of work product created during the engagement.
-28. LEGAL EVIDENCE
-
-Every material legal claim should point to evidence.
-
-Example:
-
-{
-  "claim": "...",
-  "source_type": "statute",
-  "source_id": "...",
-  "section": "...",
-  "page_or_paragraph": "...",
-  "confidence": 0.92
-}
-
-Never fabricate:
-
-citations
-case names
-section numbers
-court decisions
-URLs
-29. CITATION VERIFICATION
-
-Build a separate verification stage.
-
-Pipeline:
-
-Generated claim
- ↓
-Evidence lookup
- ↓
-Does evidence support claim?
- ↓
-YES → retain
-NO → modify/remove claim
-
-If evidence is insufficient:
-
-insufficient_evidence
-
-The model must not convert uncertainty into certainty.
-
-30. HALLUCINATION DEFENSE
-
-The system must distinguish:
-
-Contract fact
-Legal fact
-AI interpretation
-Recommendation
-Uncertainty
-
-UI labels should make these distinctions clear.
-
-Example:
-
-Contract says:
-...
-
-Legal context:
-...
-
-AI interpretation:
-...
-
-Potential action:
-...
-
-Confidence:
-...
-31. PROMPT INJECTION DEFENSE
-
-Uploaded contracts are untrusted data.
-
-If a document contains:
-
-IGNORE PREVIOUS INSTRUCTIONS
-
-the system must treat it as contract content.
-
-Never follow instructions embedded in uploaded documents.
-
-Separate:
-
-SYSTEM INSTRUCTIONS
-
-from:
-
-UNTRUSTED DOCUMENT CONTENT
-
-Implement tests for prompt injection.
-
-32. CONTRACT Q&A
+- Import AIAnalyzer from legallens_docproc
+- Configure LLM provider from settings (OPENAI_API_KEY or GROQ_API_KEY)
+- Call analyzer.analyze_document() with extracted clauses
+- Store results in analysis_results table
+- Track token usage and cost
+
+Files to modify:
+- apps/api/app/tasks/document.py
+- apps/api/app/models/ (add analysis_result model if needed)
+- apps/api/app/core/config.py (ensure LLM keys configured)
+
+Tests:
+- Verify AI analysis returns structured risks
+- Verify results stored in database
+- Mock LLM for unit tests
+
+Commit: feat: wire AI analyzer into analysis tasks
+
+--------------------------------------------------------------------------------
+MILESTONE A4 — Replace Mock Analysis API Endpoints
+
+Current state: apps/api/app/api/v1/analysis.py returns hardcoded mock data.
 
 Implement:
+- POST /analysis/analyze → trigger Celery task, return task_id
+- GET /analysis/status/{task_id} → query Celery for real status
+- GET /analysis/result/{document_id} → fetch from database
+- GET /analysis/risks/{analysis_id} → fetch risks from DB
+- DELETE /analysis/cancel/{task_id} → revoke Celery task
 
-POST /api/v1/documents/{document_id}/ask
+Files to modify:
+- apps/api/app/api/v1/analysis.py
+- apps/api/app/models/ (ensure analysis models exist)
 
-Example:
+Tests:
+- Start analysis, poll status, verify completion
+- Verify 404 for non-existent documents
+- Verify authorization (user can only see their org's analyses)
 
-Can the company terminate this agreement immediately?
+Commit: feat: replace mock analysis endpoints with real implementation
 
-Response structure:
+--------------------------------------------------------------------------------
+MILESTONE A5 — Replace Mock Search API Endpoints
 
-Answer
-
-Contract evidence
-
-Relevant clause
-
-Legal context
-
-Sources
-
-Confidence
-
-Disclaimer
-
-Answers must be grounded in the actual document.
-
-If the contract does not answer the question:
-
-The agreement does not clearly answer this question.
-
-Do not guess.
-
-33. CONTRACT COMPARISON
-
-Implement version comparison.
-
-Upload:
-
-Version A
-Version B
-
-Detect:
-
-added clauses
-removed clauses
-modified clauses
-changed amounts
-changed dates
-changed obligations
-changed termination rights
-changed liability
-changed IP provisions
-
-Output:
-
-3 high-impact changes
-5 moderate changes
-9 minor changes
-
-Allow users to click a change and see both versions.
-
-34. KEY OBLIGATION EXTRACTION
-
-Extract:
-
-parties
-effective date
-termination date
-notice period
-payment terms
-renewal
-deliverables
-SLAs
-confidentiality duration
-non-solicitation
-IP obligations
-governing law
-jurisdiction
-arbitration
-indemnity
-liability cap
-
-Do not claim a field exists if extraction confidence is low.
-
-35. DASHBOARD
-
-Build a professional SaaS dashboard.
-
-Show:
-
-Documents
-High-risk documents
-Recent analyses
-Usage
-Subscription
-
-Document table:
-
-Document
-Type
-Risk
-Status
-Updated
-Actions
-36. ANALYSIS SCREEN
-
-Create:
-
-Contract Risk Score
-72 / 100
-HIGH
-
-Show:
-
-Critical
-High
-Moderate
-Low
-
-Each risk should show:
-
-Clause
-Risk category
-Severity
-Explanation
-Contract evidence
-Legal evidence
-Confidence
-Suggested drafting direction
-37. DOCUMENT VIEWER
-
-Build side-by-side view:
-
-┌──────────────────┬───────────────────────┐
-│ Contract         │ AI Analysis           │
-│                  │                       │
-│ Clause 8         │ 🔴 High Risk          │
-│                  │                       │
-│ ...              │ Explanation           │
-│                  │                       │
-│                  │ Evidence               │
-└──────────────────┴───────────────────────┘
-
-Clicking a risk should highlight the relevant clause/page.
-
-38. PDF REPORT
-
-Generate professional reports containing:
-
-Executive summary
-Document information
-Overall risk score
-Risk distribution
-High-risk clauses
-Moderate-risk clauses
-Potentially missing clauses
-Key obligations
-Legal evidence
-Recommendations
-Limitations
-Disclaimer
-
-Do not call the output:
-
-Legal opinion
-
-unless reviewed and issued under an appropriate professional/legal process.
-
-39. BILLING
-
-Integrate Razorpay through a backend-controlled architecture.
-
-Never trust frontend payment success.
-
-Flow:
-
-Frontend
- ↓
-Backend creates order
- ↓
-Razorpay
- ↓
-Payment
- ↓
-Webhook
- ↓
-Signature verification
- ↓
-Database update
- ↓
-Subscription/credits unlocked
+Current state: apps/api/app/api/v1/search.py returns hardcoded mock data.
 
 Implement:
+- Use legallens_docproc.semantic_search and vector_store
+- POST /search/semantic → query pgvector embeddings
+- POST /search/clauses → search clause embeddings
+- POST /search/index → generate and store embeddings for document
+- GET /search/stats → real stats from vector store
 
-free plan
-individual plan
-pro plan
-startup plan
-pay-per-document
+Prerequisite: Ensure embeddings are generated in document pipeline.
 
-Make plans configurable.
+Files to modify:
+- apps/api/app/api/v1/search.py
+- apps/api/app/tasks/document.py (add embedding generation)
 
-40. USAGE LIMITS
+Tests:
+- Index a document, verify searchable
+- Search returns relevant clauses
+- Stats reflect actual index size
 
-Implement usage tracking.
+Commit: feat: replace mock search endpoints with real semantic search
 
-Examples:
+--------------------------------------------------------------------------------
+MILESTONE A6 — Replace Mock Reports API Endpoints
 
-documents analyzed
-pages processed
-AI analysis runs
-Q&A requests
-storage
-
-Enforce limits server-side.
-
-Do not rely on frontend counters.
-
-41. AUDIT LOGGING
-
-Record important events:
-
-login
-logout
-document upload
-document deletion
-analysis started
-analysis completed
-analysis failed
-document viewed
-document shared
-payment
-subscription change
-organization membership change
-
-Do not log sensitive document contents.
-
-42. API DESIGN
-
-Implement versioned APIs:
-
-/api/v1
-
-Authentication:
-
-POST /auth/register
-POST /auth/login
-POST /auth/refresh
-POST /auth/logout
-
-Documents:
-
-POST /documents
-GET /documents
-GET /documents/{id}
-DELETE /documents/{id}
-
-Analysis:
-
-POST /documents/{id}/analyze
-GET /analyses/{id}
-GET /analyses/{id}/risks
-GET /analyses/{id}/clauses
-GET /analyses/{id}/citations
-
-Q&A:
-
-POST /documents/{id}/ask
-
-Comparison:
-
-POST /documents/compare
-GET /comparisons/{id}
-
-Reports:
-
-GET /reports/{id}/pdf
-
-Billing:
-
-POST /payments/create-order
-POST /payments/webhook
-GET /subscription
-GET /usage
-43. API DOCUMENTATION
-
-FastAPI must generate OpenAPI documentation.
-
-Every endpoint should have:
-
-request schema
-response schema
-authentication requirements
-status codes
-error responses
-examples where useful
-44. ERROR HANDLING
-
-Create consistent API errors.
-
-Example:
-
-{
-  "error": {
-    "code": "DOCUMENT_NOT_FOUND",
-    "message": "Document not found."
-  }
-}
-
-Do not expose stack traces in production.
-
-Log detailed errors internally.
-
-45. BACKGROUND JOBS
-
-Long-running operations must not block HTTP requests.
-
-Use:
-
-FastAPI
- ↓
-Redis queue
- ↓
-Worker
-
-For:
-
-OCR
-document processing
-embedding
-analysis
-report generation
-
-Provide status:
-
-queued
-processing
-completed
-failed
-46. IDEMPOTENCY
-
-Make critical operations idempotent.
-
-Especially:
-
-payments
-webhooks
-analysis jobs
-document processing
-
-Duplicate requests must not create duplicate charges or duplicate analysis records.
-
-47. OBSERVABILITY
+Current state: apps/api/app/api/v1/reports.py returns hardcoded mock data.
 
 Implement:
+- Use legallens_docproc.report_generator
+- POST /reports/generate → create report from analysis results
+- GET /reports/{document_id} → list reports from DB
+- GET /reports/detail/{report_id} → fetch report from DB
+- POST /reports/export → export as JSON/HTML/Markdown/PDF
+- DELETE /reports/{report_id} → delete from DB
 
-structured logging
-request IDs
-correlation IDs
-metrics
-error tracking
-LLM latency
-LLM cost
-retrieval latency
-worker failures
-analysis duration
+Files to modify:
+- apps/api/app/api/v1/reports.py
+- apps/api/app/models/ (add report model)
 
-Track:
+Tests:
+- Generate report after analysis
+- Export in multiple formats
+- Verify report content matches analysis
 
-token usage
-model usage
-cost per document
-cost per analysis
-48. SECURITY
+Commit: feat: replace mock report endpoints with real generation
 
-Implement:
+--------------------------------------------------------------------------------
+PHASE B: Build Empty AI/Legal/Retrieval Packages
+--------------------------------------------------------------------------------
 
-HTTPS
-secure cookies where applicable
-password hashing
-JWT security
-rate limiting
-CORS
-CSRF protections where applicable
-input validation
-SQL injection protection
-XSS protection
-secure headers
-file validation
-tenant isolation
-object-storage access controls
-secret management
+MILESTONE B1 — Build LangGraph Analysis Engine (packages/ai)
 
-Never expose storage buckets publicly.
-
-Use signed URLs where appropriate.
-
-49. DATA RETENTION
-
-Implement configurable retention.
-
-Users should be able to delete documents.
-
-Deletion must handle:
-
-database records
-object storage
-embeddings
-derived analysis data
-queued jobs
-cached results
-
-Do not leave orphaned sensitive files.
-
-50. PRIVACY
-
-Create privacy-aware architecture.
-
-Clearly communicate:
-
-how documents are processed
-where documents are stored
-retention behavior
-deletion behavior
-third-party model processing where applicable
-whether data is used for model training
-
-Never claim:
-
-"Your data is never used for training"
-
-unless the configured providers/contracts actually guarantee that.
-
-51. LEGAL DISCLAIMER
-
-The product must clearly communicate:
-
-This tool provides AI-assisted document analysis and general
-information. It does not constitute legal advice or create a
-lawyer-client relationship. Legal outcomes depend on facts,
-jurisdiction, applicable law, and current judicial interpretation.
-For important or high-risk matters, consult a qualified lawyer.
-
-Adapt wording after obtaining appropriate legal review.
-
-52. EVALUATION DATASET
-
-Create:
-
-data/evaluation/
-
-Store anonymized/synthetic test contracts where legally appropriate.
-
-Do not commit real confidential contracts.
-
-Build examples for:
-
-employment
-NDA
-lease
-vendor
-
-Annotations:
-
-clause
-risk category
-severity
-expected evidence
-missing clause
-expected reasoning
-53. AI EVALUATION
-
-Measure:
-
-Retrieval
-Recall@5
-Recall@10
-MRR
-NDCG
-Risk detection
-precision
-recall
-F1
-false-negative rate
-Citation quality
-citation correctness
-citation completeness
-evidence support rate
-Generation
-hallucination rate
-groundedness
-schema validity
-
-Legal false negatives must receive particular attention.
-
-54. GOLDEN TEST SUITE
-
-Create regression tests.
-
-Example:
-
-100+ test scenarios
-
-Every AI pipeline change must run the golden suite.
-
-If quality falls below configured thresholds, CI should fail.
-
-55. UNIT TESTING
-
-Test:
-
-auth
-authorization
-database models
-document validation
-clause parsing
-risk scoring
-citation mapping
-billing logic
-usage limits
-56. INTEGRATION TESTING
-
-Test complete flows:
-
-register
- ↓
-login
- ↓
-upload
- ↓
-process
- ↓
-analyze
- ↓
-retrieve results
- ↓
-generate report
-
-Test failures.
-
-57. SECURITY TESTING
-
-Explicitly test:
-
-IDOR
-tenant isolation
-malicious file
-oversized file
-path traversal
-prompt injection
-XSS
-SQL injection
-rate-limit bypass
-unauthorized document access
-webhook spoofing
-duplicate webhook
-58. FRONTEND TESTING
-
-Test:
-
-authentication
-upload
-loading states
-failed processing
-analysis results
-document viewer
-risk navigation
-Q&A
-billing
-logout
-59. UI/UX REQUIREMENTS
-
-Design should feel like a serious B2B SaaS.
-
-Avoid:
-
-excessive gradients
-childish AI aesthetics
-unnecessary animations
-clutter
-fake AI gimmicks
-
-Prioritize:
-
-clarity
-trust
-evidence
-readability
-professionalism
-
-Legal information must be easy to scan.
-
-60. ACCESSIBILITY
+Current state: packages/ai/legallens_ai is empty (only __init__.py).
 
 Implement:
+- TypedDict state for analysis pipeline
+- Graph nodes: DocumentClassifier, ClauseRouter, RiskAnalyzer, MissingClauseAnalyzer
+- LegalRetriever node (stub for now)
+- EvidenceVerifier node
+- RiskScorer node
+- RecommendationGenerator node
+- QualityChecker node
+- Error handling and checkpointing
 
-keyboard navigation
-semantic HTML
-ARIA where required
-focus states
-color-independent status indicators
-readable contrast
-screen-reader compatibility
+File structure:
+packages/ai/legallens_ai/
+├── __init__.py
+├── state.py (AnalysisState TypedDict)
+├── graph.py (build_analysis_graph)
+├── nodes/
+│   ├── __init__.py
+│   ├── classifier.py
+│   ├── risk_analyzer.py
+│   ├── missing_clause.py
+│   ├── legal_retriever.py
+│   ├── evidence_verifier.py
+│   ├── risk_scorer.py
+│   ├── recommendations.py
+│   └── quality_checker.py
+└── prompts/
+    ├── __init__.py
+    └── analysis_prompts.py
 
-Do not communicate risk using color alone.
+Dependencies to add:
+- langgraph
+- langchain-core
 
-For example:
+Tests:
+- Test each node in isolation
+- Test full graph execution with mock LLM
+- Verify structured outputs
 
-🔴 CRITICAL
+Commit: feat: build LangGraph analysis engine
 
-rather than only a red background.
+--------------------------------------------------------------------------------
+MILESTONE B2 — Build Indian Legal Corpus (packages/legal)
 
-61. RESPONSIVENESS
-
-Support:
-
-desktop
-tablet
-mobile
-
-Desktop should prioritize contract analysis.
-
-62. PERFORMANCE
-
-Target:
-
-API p95 latency < 500ms
-
-for normal non-AI API operations.
-
-Long AI operations should be asynchronous.
-
-Frontend should use:
-
-pagination
-lazy loading
-caching
-optimistic UI only where safe
-63. COST CONTROL
-
-Track AI cost per analysis.
+Current state: packages/legal/legallens_legal is empty (only __init__.py).
 
 Implement:
+- Source schema with metadata and versioning
+- Ingestion pipeline for legal sources
+- Chunking for retrieval
+- Initial corpus from authoritative Indian legal sources:
+  - Indian Contract Act, 1872
+  - Companies Act, 2013
+  - Information Technology Act, 2000
+  - Arbitration and Conciliation Act, 1996
+  - Digital Personal Data Protection framework
 
-token budgets
-model selection
-caching
-retrieval limits
-batch processing where appropriate
+File structure:
+packages/legal/legallens_legal/
+├── __init__.py
+├── models.py (LegalSource, LegalChunk)
+├── sources/
+│   ├── __init__.py
+│   ├── contract_act.py
+│   ├── companies_act.py
+│   └── it_act.py
+├── ingestion.py
+├── chunking.py
+└── versioning.py
 
-Do not use expensive models for trivial tasks.
+Tests:
+- Verify source metadata
+- Verify chunking produces valid chunks
+- Verify versioning works
 
-Example:
+Commit: feat: establish versioned Indian legal corpus
 
-classification → cheaper model
-clause extraction → structured model
-complex legal reasoning → stronger model
-verification → independent model/process where appropriate
+--------------------------------------------------------------------------------
+MILESTONE B3 — Build Hybrid Retrieval System (packages/retrieval)
 
-Keep model providers configurable.
-
-64. LLM PROVIDER ABSTRACTION
-
-Create:
-
-LLMProvider
-
-with implementations such as:
-
-OpenAI
-Anthropic
-Local
-
-Do not scatter provider-specific calls throughout the application.
-
-65. EMBEDDING ABSTRACTION
-
-Create:
-
-EmbeddingProvider
-
-so the embedding model can be replaced without rewriting retrieval.
-
-66. RETRIEVER ABSTRACTION
-
-Create:
-
-Retriever
-
-with:
-
-VectorRetriever
-KeywordRetriever
-HybridRetriever
-
-The analysis engine should depend on interfaces, not implementation details.
-
-67. CONFIGURATION
-
-Centralize configuration.
-
-Use environment variables for:
-
-DATABASE_URL
-REDIS_URL
-OBJECT_STORAGE_ENDPOINT
-OBJECT_STORAGE_ACCESS_KEY
-OBJECT_STORAGE_SECRET_KEY
-LLM_API_KEY
-EMBEDDING_API_KEY
-RAZORPAY_KEY_ID
-RAZORPAY_KEY_SECRET
-JWT_SECRET
-
-Never hardcode credentials.
-
-68. DOCKER
-
-Create production-aware Dockerfiles.
-
-Use:
-
-multi-stage builds
-non-root users
-minimal images
-health checks
-
-Docker Compose should support:
-
-api
-worker
-web
-postgres
-redis
-minio
-
-where appropriate.
-
-69. HEALTH CHECKS
+Current state: packages/retrieval/legallens_retrieval is empty (only __init__.py).
 
 Implement:
-
-GET /health
-GET /ready
-
-Check dependencies appropriately.
-
-Example:
-
-database
-redis
-object storage
-
-Do not expose secrets in health responses.
-
-70. GITHUB ACTIONS
-
-Create workflows:
-
-CI
-Test
-Security
-Docker Build
-
-Pipeline:
-
-push
- ↓
-lint
- ↓
-type check
- ↓
-unit tests
- ↓
-integration tests
- ↓
-security scan
- ↓
-AI evaluation
- ↓
-Docker build
-
-Do not automatically deploy production until CI succeeds.
-
-71. DATABASE MIGRATIONS
-
-Use Alembic.
-
-Never modify production schemas manually.
-
-Every schema change must have a migration.
-
-Test migrations from a clean database.
-
-72. SEEDING
-
-Create safe development seed scripts.
-
-Seed:
-
-demo organization
-demo users
-synthetic contracts
-legal-source test data
-
-Never seed real private documents.
-
-73. DOCUMENT SHARING
-
-Later-stage feature.
-
-Implement secure sharing with:
-
-expiring links
-permission controls
-revocation
-audit logs
-
-Do not expose permanent public document URLs.
-
-74. ADMIN PANEL
-
-Create internal admin capabilities for:
-
-users
-organizations
-documents metadata
-failed jobs
-system health
-legal corpus versions
-usage
-billing status
-
-Do not allow admins to casually expose document contents.
-
-Sensitive access must be auditable.
-
-75. LEGAL KNOWLEDGE ADMIN
-
-Build a controlled workflow:
-
-Source discovered
- ↓
-Validation
- ↓
-Metadata
- ↓
-Ingestion
- ↓
-Chunking
- ↓
-Embedding
- ↓
-Indexing
- ↓
-Evaluation
- ↓
-Publish
-
-Do not automatically treat arbitrary internet content as authoritative law.
-
-76. SOURCE FRESHNESS
-
-Store:
-
-retrieved_at
-published_at
-effective_from
-effective_until
-
-Implement stale-source detection.
-
-If legal evidence may be outdated, surface that uncertainty.
-
-77. REPORT QUALITY GATE
-
-Before generating a final report:
-
-Are all risks schema-valid?
-Are citations valid?
-Are citations relevant?
-Are legal claims supported?
-Are page references valid?
-Are confidence values present?
-Are unsupported claims removed?
-
-If not:
-
-analysis_status = NEEDS_REVIEW
-
-Do not generate a falsely confident report.
-
-78. AI FAILURE BEHAVIOR
-
-The AI must be allowed to return:
-
-Unable to determine
-Insufficient evidence
-Low confidence
-Needs professional review
-
-These are valid outputs.
-
-Never force an answer.
-
-79. COMMERCIAL RISK DETECTION
-
-Detect:
-
-unlimited liability
-uncapped indemnity
-long payment terms
-automatic renewal
-termination asymmetry
-large penalties
-broad warranties
-exclusive obligations
-minimum commitments
-price escalation
-
-Explain commercially rather than pretending every commercial disadvantage is illegal.
-
-80. CONTRACT SUMMARY
-
-Generate:
-
-Parties
-Purpose
-Duration
-Payment
-Termination
-Major obligations
-Major restrictions
-Liability
-IP
-Confidentiality
-Dispute resolution
-Important dates
-81. ACTION CENTER
-
-Give users actionable outputs:
-
-Review these 3 clauses
-Ask lawyer about these 2 issues
-Confirm these 4 dates
-Negotiate these 3 commercial terms
-
-This is more useful than simply displaying a score.
-
-82. PRODUCT PRICING
-
-Initial configurable plans:
-
-Free
-₹0
-
-Individual
-₹499/month
-
-Pro
-₹999/month
-
-Startup
-₹2,999/month
-
-Also support pay-per-document.
-
-Do not hard-code prices throughout the application.
-
-Store plan configuration centrally.
-
-83. MONETIZATION FEATURES
+- VectorRetriever (pgvector)
+- KeywordRetriever (BM25 or similar)
+- HybridRetriever (combines both with reranking)
+- Metadata filters (jurisdiction, document_type, law, section)
+
+File structure:
+packages/retrieval/legallens_retrieval/
+├── __init__.py
+├── base.py (Retriever interface)
+├── vector.py (VectorRetriever)
+├── keyword.py (KeywordRetriever)
+├── hybrid.py (HybridRetriever with reranking)
+├── filters.py
+└── evaluation.py (Recall@K, MRR, NDCG)
+
+Tests:
+- Test each retriever in isolation
+- Test hybrid combination
+- Verify retrieval metrics
+
+Commit: feat: implement hybrid legal retrieval
+
+--------------------------------------------------------------------------------
+MILESTONE B4 — Document Classification
+
+Current state: No document type classification exists.
 
 Implement:
+- DocumentClassifier using LLM
+- Classify into: employment, nda, lease, vendor, consultancy, founder, term_sheet, other, unknown
+- Return confidence score
+- Store classification in documents table
 
-subscription
-credits
-usage limits
-payment history
-invoices/receipts where applicable
-plan upgrades
-plan downgrades
-cancellation
-webhook reconciliation
-84. BUSINESS METRICS
+Files to modify:
+- apps/api/app/tasks/document.py
+- apps/api/app/models/document.py
+- packages/ai/legallens_ai/nodes/classifier.py
 
-Track:
+Tests:
+- Verify correct classification for sample documents
+- Verify confidence scores
+- Verify "unknown" for ambiguous documents
 
-signups
-activation
-documents uploaded
-documents analyzed
-analysis completion rate
-analysis failure rate
-high-risk percentage
-Q&A usage
-report exports
-conversion
-MRR
-churn
-AI cost/customer
-AI cost/document
+Commit: feat: add legal document classification
 
-Build an internal analytics abstraction.
+--------------------------------------------------------------------------------
+MILESTONE B5 — Risk Analysis with Evidence
 
-85. README
-
-README must explain:
-
-product
-architecture
-features
-technology
-local setup
-environment variables
-database setup
-Docker setup
-running tests
-AI pipeline
-legal corpus
-security
-deployment
-limitations
-disclaimer
-
-Include architecture diagrams in Mermaid where useful.
-
-86. DEVELOPER DOCUMENTATION
-
-Create:
-
-docs/
-├── architecture.md
-├── api.md
-├── database.md
-├── ai-pipeline.md
-├── rag.md
-├── legal-corpus.md
-├── security.md
-├── evaluation.md
-├── deployment.md
-└── contributing.md
-87. DEVELOPMENT MILESTONES
-
-Execute in exactly this order unless a dependency requires adjustment.
-
-MILESTONE 01 — Repository Foundation
-
-Build:
-
-monorepo
-Docker
-Docker Compose
-Python environment
-React environment
-linting
-formatting
-pre-commit
-.env.example
-README
-Makefile
-
-Run all checks.
-
-Commit:
-
-feat: initialize production monorepo
-
-Push.
-
-MILESTONE 02 — Database Foundation
+Current state: AI analyzer exists but risk analysis is basic.
 
 Implement:
+- RiskAnalyzer node with structured outputs
+- Risk taxonomy (legal, commercial, IP, confidentiality, privacy, operational)
+- Evidence references from legal corpus
+- Confidence scores
+- Store risks in analysis_risks table
 
-PostgreSQL
-SQLAlchemy
-Alembic
-base models
-health checks
-database migrations
+Files to modify:
+- packages/ai/legallens_ai/nodes/risk_analyzer.py
+- apps/api/app/models/ (add risk model)
 
-Tests.
+Tests:
+- Verify structured risk output
+- Verify evidence references
+- Verify confidence calibration
 
-Commit:
+Commit: feat: implement evidence-based risk analysis
 
-feat: establish database foundation
-
-Push.
-
-MILESTONE 03 — Authentication
-
-Implement:
-
-registration
-login
-JWT
-refresh
-logout
-password hashing
-RBAC
-
-Tests including unauthorized access.
-
-Commit:
-
-feat: implement authentication and authorization
-
-Push.
-
-MILESTONE 04 — Organizations
+--------------------------------------------------------------------------------
+MILESTONE B6 — Missing Clause Detection
 
 Implement:
+- MissingClauseAnalyzer node
+- Document-type-specific expectations (NDA needs IP clause, employment needs termination, etc.)
+- Confidence and evidence for each missing clause
+- Store in analysis_missing_clauses table
 
-organizations
-members
-roles
-tenant isolation
+Files to modify:
+- packages/ai/legallens_ai/nodes/missing_clause.py
+- apps/api/app/models/
 
-Add IDOR tests.
+Tests:
+- Verify missing clauses detected for incomplete documents
+- Verify low false positive rate
 
-Commit:
+Commit: feat: implement missing clause analysis
 
-feat: implement multi-tenant organizations
-
-Push.
-
-MILESTONE 05 — Object Storage
-
-Implement:
-
-MinIO local development
-S3 abstraction
-secure uploads
-signed URLs
-document metadata
-
-Tests.
-
-Commit:
-
-feat: add secure document storage
-
-Push.
-
-MILESTONE 06 — Document Upload
+--------------------------------------------------------------------------------
+MILESTONE B7 — Citation Verification
 
 Implement:
+- EvidenceVerifier node
+- Map claims to legal sources
+- Validate citations exist and support claims
+- Filter unsupported claims
+- Store verified citations
 
-PDF
-DOCX
-validation
-size limits
-MIME validation
-file signatures
-upload API
+Files to modify:
+- packages/ai/legallens_ai/nodes/evidence_verifier.py
+- packages/legal/legallens_legal/
 
-Commit:
+Tests:
+- Verify valid citations retained
+- Verify invalid citations removed
+- Verify confidence reflects evidence quality
 
-feat: implement secure document upload
+Commit: feat: implement legal citation verification
 
-Push.
-
-MILESTONE 07 — Document Processing
-
-Implement:
-
-PDF extraction
-DOCX extraction
-OCR abstraction
-page preservation
-structured document representation
-
-Commit:
-
-feat: implement document processing pipeline
-
-Push.
-
-MILESTONE 08 — Clause Segmentation
+--------------------------------------------------------------------------------
+MILESTONE B8 — Deterministic Risk Scoring
 
 Implement:
+- RiskScorer node (NOT LLM-based)
+- Scoring dimensions: legal severity, enforceability, financial exposure, business impact
+- Configurable weights
+- Score bands: 0-29 Low, 30-49 Moderate, 50-69 High, 70-100 Critical
+- Document clearly that score is heuristic, not legal determination
 
-heading detection
-numbered clauses
-nested clauses
-definitions
-schedules
-annexures
-page references
+Files to modify:
+- packages/ai/legallens_ai/nodes/risk_scorer.py
 
-Commit:
+Tests:
+- Verify deterministic output for same input
+- Verify weights configurable
+- Verify score bands correct
 
-feat: implement contract clause segmentation
+Commit: feat: implement explainable risk scoring
 
-Push.
+--------------------------------------------------------------------------------
+PHASE C: Frontend Integration
+--------------------------------------------------------------------------------
 
-MILESTONE 09 — Document Classification
+MILESTONE C1 — Analysis Dashboard with Real Data
 
-Implement:
-
-employment
-NDA
-lease
-vendor
-other
-unknown
-confidence
-
-Commit:
-
-feat: add legal document classification
-
-Push.
-
-MILESTONE 10 — Legal Corpus
+Current state: Dashboard shows live counts but analysis page consumes mock API.
 
 Implement:
+- Connect AnalysisPage to real /analysis endpoints
+- Show real risk scores and risk cards
+- Show real missing clauses
+- Show real citations with links
+- Loading states and error handling
 
-source schema
-metadata
-versioning
-ingestion pipeline
-chunking
-indexing
+Files to modify:
+- apps/web/src/pages/AnalysisPage.tsx
+- apps/web/src/components/AnalysisResults.tsx
+- apps/web/src/components/RiskVisualization.tsx
 
-Use only legally appropriate sources.
+Tests:
+- Run analysis, verify results display
+- Verify risk navigation works
+- Verify error states handled
 
-Commit:
+Commit: feat: connect analysis dashboard to real API
 
-feat: establish versioned Indian legal corpus
-
-Push.
-
-MILESTONE 11 — Retrieval
-
-Implement:
-
-pgvector
-BM25/keyword retrieval
-hybrid retrieval
-metadata filters
-reranking
-retrieval evaluation
-
-Commit:
-
-feat: implement hybrid legal retrieval
-
-Push.
-
-MILESTONE 12 — LangGraph Foundation
+--------------------------------------------------------------------------------
+MILESTONE C2 — Document Viewer with Clause Navigation
 
 Implement:
+- PDF viewer component
+- Clause navigation sidebar
+- Click clause to highlight in PDF
+- Risk indicators on clauses
+- Side-by-side analysis view
 
-typed state
-graph
-nodes
-error handling
-checkpointing where useful
+Files to create/modify:
+- apps/web/src/components/PdfViewer.tsx
+- apps/web/src/components/ClauseNavigation.tsx
+- apps/web/src/pages/DocumentViewerPage.tsx
 
-Commit:
+Tests:
+- Verify PDF renders
+- Verify clause navigation works
+- Verify highlighting works
 
-feat: establish LangGraph analysis engine
+Commit: feat: add evidence-driven document viewer
 
-Push.
+--------------------------------------------------------------------------------
+MILESTONE C3 — Contract Q&A
 
-MILESTONE 13 — Risk Analysis
-
-Implement:
-
-risk taxonomy
-structured outputs
-risk detector
-evidence references
-confidence
-
-Commit:
-
-feat: implement contract risk analysis
-
-Push.
-
-MILESTONE 14 — Missing Clause Analysis
+Current state: Mock endpoint only.
 
 Implement:
+- POST /documents/{id}/ask endpoint (real implementation)
+- Q&A UI component
+- Document-grounded answers
+- Legal evidence citations
+- Conversation history (optional)
 
-document-type-specific expectations
-missing clause detection
-confidence
-evidence
+Files to modify:
+- apps/api/app/api/v1/analysis.py (or new qa.py)
+- apps/web/src/components/ContractQA.tsx
 
-Commit:
+Tests:
+- Ask question, verify grounded answer
+- Verify "unknown" when document doesn't answer
+- Verify citations included
 
-feat: implement missing clause analysis
+Commit: feat: add grounded contract Q&A
 
-Push.
+--------------------------------------------------------------------------------
+MILESTONE C4 — Contract Comparison
 
-MILESTONE 15 — Citation Verification
-
-Implement:
-
-evidence mapping
-claim verification
-citation validation
-unsupported-claim filtering
-
-Commit:
-
-feat: implement legal citation verification
-
-Push.
-
-MILESTONE 16 — Risk Scoring
-
-Implement deterministic risk scoring.
-
-Commit:
-
-feat: implement explainable contract risk scoring
-
-Push.
-
-MILESTONE 17 — Analysis API
+Current state: Mock endpoint only.
 
 Implement:
+- POST /documents/compare endpoint
+- Upload two versions
+- Detect added/removed/modified clauses
+- Risk change analysis
+- Before/after display UI
 
-start analysis
-analysis status
-results
-risks
-clauses
-citations
-recommendations
+Files to modify:
+- apps/api/app/api/v1/ (add comparison.py)
+- apps/web/src/pages/ComparisonPage.tsx
 
-Background processing required.
+Tests:
+- Upload two versions, verify diff
+- Verify risk changes detected
 
-Commit:
+Commit: feat: implement contract version comparison
 
-feat: expose contract analysis APIs
-
-Push.
-
-MILESTONE 18 — React Application
-
-Implement:
-
-routing
-authentication
-dashboard
-upload
-document list
-analysis status
-
-Commit:
-
-feat: build legal analysis web application
-
-Push.
-
-MILESTONE 19 — Analysis Dashboard
+--------------------------------------------------------------------------------
+MILESTONE C5 — PDF Report Generation
 
 Implement:
+- Professional PDF report template
+- Include: executive summary, risks, missing clauses, citations, recommendations
+- Download from UI
+- Disclaimer and limitations
 
-risk score
-risk breakdown
-risk cards
-missing clauses
-key obligations
-citations
+Files to modify:
+- packages/document_processing/legallens_docproc/report_generator.py
+- apps/web/src/components/ReportDownload.tsx
 
-Commit:
+Tests:
+- Generate report, verify PDF structure
+- Verify all sections present
 
-feat: add contract risk dashboard
+Commit: feat: add downloadable PDF analysis reports
 
-Push.
+--------------------------------------------------------------------------------
+PHASE D: Payment Integration
+--------------------------------------------------------------------------------
 
-MILESTONE 20 — Document Viewer
+MILESTONE D1 — Persist Payment Data to Database
 
-Implement:
-
-PDF viewer
-clause navigation
-risk highlighting
-page navigation
-side-by-side analysis
-
-Commit:
-
-feat: add evidence-driven contract viewer
-
-Push.
-
-MILESTONE 21 — Contract Q&A
+Current state: PaymentService uses in-memory dicts, no DB persistence.
 
 Implement:
+- Create payments and subscriptions tables (may exist)
+- Store orders in database
+- Store payments in database
+- Store subscriptions in database
+- Replace in-memory dicts with DB queries
 
-document-grounded questions
-legal evidence
-citations
-confidence
-conversation history
+Files to modify:
+- apps/api/app/services/payment.py
+- apps/api/app/models/payment.py
 
-Commit:
+Tests:
+- Create order, verify in DB
+- Complete payment, verify subscription in DB
+- Restart server, verify data persists
 
-feat: add grounded contract Q&A
+Commit: feat: persist payment data to database
 
-Push.
+--------------------------------------------------------------------------------
+MILESTONE D2 — Integrate Real Razorpay API
 
-MILESTONE 22 — Contract Comparison
-
-Implement:
-
-version upload
-clause matching
-diff engine
-risk changes
-before/after display
-
-Commit:
-
-feat: implement contract version comparison
-
-Push.
-
-MILESTONE 23 — PDF Reports
-
-Implement professional report generation.
-
-Commit:
-
-feat: add downloadable contract analysis reports
-
-Push.
-
-MILESTONE 24 — Usage System
+Current state: Payment service creates mock order IDs, no real Razorpay SDK.
 
 Implement:
+- Install razorpay SDK
+- Create real orders via Razorpay API
+- Verify real payment signatures
+- Handle real webhooks
+- Test with Razorpay test mode
 
-usage tracking
-credits
-limits
-plan enforcement
+Dependencies:
+- razorpay
 
-Commit:
+Files to modify:
+- apps/api/app/services/payment.py
+- apps/api/app/core/config.py (RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET)
 
-feat: implement usage and quota management
+Tests:
+- Create order, verify Razorpay order ID
+- Verify signature with test payment
+- Verify webhook handling
 
-Push.
+Commit: feat: integrate Razorpay API
 
-MILESTONE 25 — Razorpay
+--------------------------------------------------------------------------------
+PHASE E: Final Validation
+--------------------------------------------------------------------------------
 
-Implement:
-
-order creation
-payment verification
-webhooks
-signature validation
-subscription state
-payment history
-
-Commit:
-
-feat: integrate Razorpay billing
-
-Push.
-
-MILESTONE 26 — Subscription UI
+MILESTONE E1 — Evaluation Framework
 
 Implement:
+- Golden test dataset (synthetic contracts)
+- Retrieval metrics (Recall@K, MRR, NDCG)
+- Risk detection metrics (precision, recall, F1)
+- Citation correctness metrics
+- Hallucination checks
+- Regression test suite
 
-pricing
-checkout
-subscription
-usage
-upgrade
-downgrade
-cancel
+Files to create:
+- data/evaluation/ (synthetic contracts)
+- tests/evaluation/ (evaluation tests)
 
-Commit:
+Tests:
+- All evaluation tests pass
+- Quality thresholds met
 
-feat: add subscription management UI
+Commit: test: establish AI evaluation framework
 
-Push.
-
-MILESTONE 27 — Audit Logs
-
-Implement:
-
-audit events
-organization filtering
-secure logging
-
-Commit:
-
-feat: implement audit logging
-
-Push.
-
-MILESTONE 28 — Security Hardening
+--------------------------------------------------------------------------------
+MILESTONE E2 — Final QA
 
 Run:
-
-dependency scanning
-SAST
-secret scanning
-upload security
-IDOR tests
-tenant isolation tests
-prompt injection tests
-rate limit tests
-
-Fix findings.
-
-Commit:
-
-security: harden production application
-
-Push.
-
-MILESTONE 29 — Evaluation Framework
-
-Implement:
-
-golden dataset
-retrieval metrics
-risk detection metrics
-citation metrics
-hallucination checks
-regression suite
-
-Commit:
-
-test: establish AI evaluation framework
-
-Push.
-
-MILESTONE 30 — Observability
-
-Implement:
-
-structured logging
-metrics
-request IDs
-LLM cost tracking
-analysis latency
-worker monitoring
-error tracking
-
-Commit:
-
-feat: add production observability
-
-Push.
-
-MILESTONE 31 — CI/CD
-
-Implement:
-
-lint
-tests
-security scan
-AI evaluation
-Docker build
-deployment workflow
-
-Commit:
-
-ci: establish production CI pipeline
-
-Push.
-
-MILESTONE 32 — Production Deployment
-
-Prepare:
-
-production Docker configuration
-environment configuration
-database migrations
-object storage
-Redis
-workers
-frontend
-reverse proxy
-HTTPS
-health checks
-backups
-
-Do not deploy secrets into git.
-
-Commit:
-
-feat: prepare production deployment
-
-Push.
-
-MILESTONE 33 — Final QA
-
-Run:
-
-unit tests
-integration tests
-security tests
-frontend tests
-AI evaluation
-load tests
-migration tests
-Docker tests
+- All unit tests
+- All integration tests
+- All security tests
+- All frontend tests
+- All evaluation tests
+- Load tests
+- Migration tests from clean DB
 
 Fix all critical/high issues.
 
-Commit:
+Commit: test: complete production release validation
 
-test: complete production release validation
+================================================================================
+SECTION 4: DEFINITION OF DONE
+================================================================================
 
-Push.
-
-88. FINAL DEFINITION OF DONE
-
-The project is NOT complete until all of these are true:
+The project is NOT complete until ALL of these are true:
 
 [ ] Authentication works
 [ ] Authorization works
 [ ] Multi-tenancy works
 [ ] Tenant isolation tested
-[ ] PDF upload works
-[ ] DOCX upload works
-[ ] File validation works
-[ ] Secure storage works
-[ ] PDF extraction works
-[ ] OCR fallback works
-[ ] Clause segmentation works
+[x] PDF upload works
+[x] DOCX upload works
+[x] File validation works
+[x] Secure storage works
+[ ] PDF extraction works (package exists, not wired)
+[ ] Clause segmentation works (package exists, not wired)
 [ ] Document classification works
 [ ] Legal corpus exists
 [ ] Legal corpus is versioned
@@ -2649,138 +789,44 @@ The project is NOT complete until all of these are true:
 [ ] Contract Q&A works
 [ ] Contract comparison works
 [ ] PDF report generation works
-[ ] Usage limits work
-[ ] Razorpay works
+[x] Usage limits work
+[ ] Razorpay works (mock only)
 [ ] Webhook verification works
-[ ] Audit logging works
-[ ] Security tests pass
+[x] Audit logging works
+[x] Security tests pass
 [ ] AI evaluation passes
-[ ] CI passes
-[ ] Docker builds
-[ ] Production configuration exists
-[ ] Documentation is complete
-[ ] .env is not committed
-[ ] No secrets are committed
-[ ] Every milestone has a git commit
-[ ] Every milestone has been pushed
-89. FINAL PROJECT ARCHITECTURE
+[x] CI passes
+[x] Docker builds
+[x] Production configuration exists
+[x] Documentation is complete
+[x] .env is not committed
+[x] No secrets are committed
+[ ] Every remaining milestone has a git commit
+[ ] Every remaining milestone has been pushed
 
-The final system should conceptually look like:
+================================================================================
+SECTION 5: EXECUTION INSTRUCTION
+================================================================================
 
-                         USER
-                           │
-                           ▼
-                    ┌─────────────┐
-                    │ React / Web │
-                    └──────┬──────┘
-                           │
-                           ▼
-                    ┌─────────────┐
-                    │   FastAPI   │
-                    └──────┬──────┘
-                           │
-       ┌───────────────────┼────────────────────┐
-       │                   │                    │
-       ▼                   ▼                    ▼
- PostgreSQL              Redis              S3/MinIO
-       │                   │                    │
-       │                   ▼                    │
-       │                Workers                 │
-       │                   │                    │
-       └───────────────────┼────────────────────┘
-                           ▼
-                    DOCUMENT ENGINE
-                           │
-                           ▼
-                  CLAUSE SEGMENTATION
-                           │
-                           ▼
-                    LANGGRAPH ENGINE
-                           │
-             ┌─────────────┼─────────────┐
-             ▼             ▼             ▼
-         RISK AGENT   MISSING CLAUSE   Q&A
-             │             │             │
-             └─────────────┼─────────────┘
-                           ▼
-                    LEGAL RAG ENGINE
-                           │
-                 ┌─────────┴─────────┐
-                 ▼                   ▼
-            Vector Search        Keyword Search
-                 │                   │
-                 └─────────┬─────────┘
-                           ▼
-                       Reranker
-                           │
-                           ▼
-                 INDIAN LEGAL CORPUS
-                           │
-                           ▼
-                  EVIDENCE VERIFIER
-                           │
-                           ▼
-                    RISK SCORER
-                           │
-                           ▼
-                 QUALITY CONTROLLER
-                           │
-                           ▼
-                    FINAL REPORT
-                           │
-             ┌─────────────┼─────────────┐
-             ▼             ▼             ▼
-          Dashboard      Q&A          PDF Report
-                           │
-                           ▼
-                       Razorpay
-90. EXECUTION INSTRUCTION
-
-Start now.
-
-First inspect the existing repository.
-
-Run:
-
-pwd
-git status
-git remote -v
-git branch --show-current
-ls
-
-Then inspect the existing project structure before changing anything.
-
-If an existing codebase is present:
-
-preserve useful work
-do not blindly overwrite files
-identify existing architecture
-identify reusable components
-identify technical debt
-create a migration plan
-
-If the repository is empty:
-
-initialize the architecture described above
-
-Then execute only Milestone 01.
+Start with MILESTONE A1.
 
 Do not jump ahead.
 
-After Milestone 01:
+After each milestone:
 
-Run all relevant checks.
-Show what was implemented.
-Show test results.
-Show git status.
-Commit.
-Push.
-Confirm the commit succeeded.
-Then proceed to Milestone 02.
+1. Run tests
+2. Run linting
+3. Run type checks
+4. Verify manually
+5. git status
+6. git diff
+7. Commit with exact message specified
+8. Push
+9. Confirm commit succeeded
 
-Continue milestone-by-milestone until the entire system reaches the Definition of Done.
+Then proceed to next milestone.
 
-At every stage, prefer:
+Prefer at every stage:
 
 correctness > speed
 security > convenience
