@@ -77,7 +77,7 @@ class PaymentService:
         client = self._get_razorpay_client()
         if client and plan.price_inr > 0:
             try:
-                order = client.order.create(
+                order = client.order.create(  # type: ignore[union-attr]
                     {
                         "amount": amount_paise,
                         "currency": "INR",

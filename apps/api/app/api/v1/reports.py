@@ -338,8 +338,14 @@ async def export_report(
             title=report.title,
         )
         pdf_report.executive_summary = report.executive_summary or ""
+        from legallens_docproc.report_models import ReportSection
+
         pdf_report.sections = [
-            type("Section", (), {"title": s.get("title", ""), "content": s.get("content", "")})()
+            ReportSection(
+                title=s.get("title", ""),
+                content=s.get("content", ""),
+                section_type=s.get("section_type", "text"),
+            )
             for s in report_data.get("sections", [])
         ]
 

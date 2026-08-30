@@ -96,9 +96,8 @@ def _calculate_legal_severity(risk_findings: list) -> float:
     total = 0.0
     for risk in risk_findings:
         severity = getattr(risk, "severity", "medium")
-        if hasattr(severity, "value"):
-            severity = severity.value
-        total += severity_scores.get(str(severity), 50)
+        severity_val = str(severity.value) if hasattr(severity, "value") else str(severity)  # type: ignore[union-attr]
+        total += severity_scores.get(severity_val, 50)
 
     # Average, weighted by count (more risks = higher score)
     avg = total / len(risk_findings)

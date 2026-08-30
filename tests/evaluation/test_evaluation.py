@@ -67,7 +67,7 @@ def test_missing_clause_detection():
         "clauses": [{"text": c, "clause_id": f"clause_{i}"} for i, c in enumerate(contract["content"].split("\n\n")[:5])],
     }
 
-    result = detect_missing_clauses(state)
+    result = detect_missing_clauses(state)  # type: ignore[arg-type]
 
     # Should detect some missing clauses
     assert "missing_clauses" in result
@@ -84,8 +84,8 @@ def test_deterministic_scoring():
         "verified_citations": [],
     }
 
-    result1 = calculate_risk_score(state)
-    result2 = calculate_risk_score(state)
+    result1 = calculate_risk_score(state)  # type: ignore[arg-type]
+    result2 = calculate_risk_score(state)  # type: ignore[arg-type]
 
     assert result1["final_risk_score"] == result2["final_risk_score"]
     assert result1["risk_band"] == result2["risk_band"]
