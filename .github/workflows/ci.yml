@@ -44,8 +44,9 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -e "packages/document_processing[dev]"
-          pip install -e "apps/api[dev]"
+          pip install -e "apps/api[dev]" --no-deps
           pip install pytest pytest-cov pytest-asyncio aiosqlite email-validator
+          pip install fastapi uvicorn pydantic pydantic-settings sqlalchemy alembic asyncpg psycopg2-binary redis celery python-jose passlib python-multipart httpx structlog prometheus-client boto3 mangum razorpay
 
       - name: Run tests
         run: |
