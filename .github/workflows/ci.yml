@@ -22,7 +22,7 @@ jobs:
         env:
           DEBUG: "true"
         run: |
-          pip install ruff pytest pytest-cov pytest-asyncio aiosqlite email-validator pyyaml
+          pip install ruff pytest pytest-cov pytest-asyncio aiosqlite email-validator pyyaml sqlalchemy
           pip install -e "packages/document_processing[dev]"
           pip install -e "apps/api[dev]" --no-deps
           pip install fastapi uvicorn pydantic pydantic-settings sqlalchemy alembic asyncpg psycopg2-binary redis celery python-jose "passlib[bcrypt]" bcrypt python-multipart httpx structlog prometheus-client boto3 mangum razorpay
@@ -130,7 +130,7 @@ jobs:
         env:
           DEBUG: "true"
         run: |
-          pip install ruff pytest pytest-cov pytest-asyncio aiosqlite email-validator pyyaml
+          pip install ruff pytest pytest-cov pytest-asyncio aiosqlite email-validator pyyaml sqlalchemy
 
       - name: Run tests
         run: |
