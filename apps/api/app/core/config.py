@@ -1,6 +1,7 @@
 """Application settings loaded from environment variables."""
 
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import model_validator
 from pydantic_settings import BaseSettings
@@ -67,6 +68,11 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE_MB: int = 50
     ALLOWED_EXTENSIONS: set[str] = {"pdf", "docx"}
 
+    # Rate limiting ("memory" is per-worker only; "redis" is required in prod)
+    RATE_LIMIT_BACKEND: Literal["memory", "redis"] = "memory"
+    RATE_LIMIT_MAX_REQUESTS: int = 100
+    RATE_LIMIT_WINDOW_SECONDS: int = 60
+
     @model_validator(mode="after")
     def _reject_insecure_defaults(self) -> "Settings":
         """Reject insecure default secrets in production."""
@@ -80,6 +86,8 @@ class Settings(BaseSettings):
             failures.append("OBJECT_STORAGE_ACCESS_KEY")
         if self.OBJECT_STORAGE_SECRET_KEY in _INSECURE_DEFAULTS:
             failures.append("OBJECT_STORAGE_SECRET_KEY")
+        if self.RATE_LIMIT_BACKEND == "memory":
+            failures.append("RATE_LIMIT_BACKEND")
 
         if failures:
             joined = ", ".join(failures)

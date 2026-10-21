@@ -13,6 +13,7 @@ from app.middleware.security import (
     InputSanitizationMiddleware,
     RateLimitMiddleware,
     SecurityHeadersMiddleware,
+    build_rate_limiter,
 )
 
 
@@ -48,7 +49,7 @@ def create_application() -> FastAPI:
 
     # Security middleware
     app.add_middleware(SecurityHeadersMiddleware)
-    app.add_middleware(RateLimitMiddleware, max_requests=100, window_seconds=60)
+    app.add_middleware(RateLimitMiddleware, limiter=build_rate_limiter(settings))
     app.add_middleware(InputSanitizationMiddleware)
 
     # Include API routes

@@ -5,6 +5,7 @@ from typing import Any
 
 from app.middleware.security import (
     InputSanitizationMiddleware,
+    MemoryRateLimiter,
     RateLimitMiddleware,
     SecurityHeadersMiddleware,
 )
@@ -26,9 +27,10 @@ def test_security_headers_middleware():
 
 def test_rate_limit_middleware():
     """Test rate limit middleware creation."""
-    middleware = RateLimitMiddleware(app=mock_asgi_app, max_requests=100, window_seconds=60)  # type: ignore[arg-type]
-    assert middleware.max_requests == 100
-    assert middleware.window_seconds == 60
+    limiter = MemoryRateLimiter(max_requests=100, window_seconds=60)
+    middleware = RateLimitMiddleware(app=mock_asgi_app, limiter=limiter)  # type: ignore[arg-type]
+    assert middleware._limiter.max_requests == 100
+    assert middleware._limiter.window_seconds == 60
 
 
 def test_input_sanitization_middleware():
@@ -47,10 +49,10 @@ def test_blocked_patterns():
 
 def test_rate_limit_tracking():
     """Test rate limit tracking."""
-    middleware = RateLimitMiddleware(app=mock_asgi_app, max_requests=5, window_seconds=60)  # type: ignore[arg-type]
+    limiter = MemoryRateLimiter(max_requests=5, window_seconds=60)
     client_ip = "127.0.0.1"
 
-    assert client_ip not in middleware._requests or len(middleware._requests[client_ip]) == 0
+    assert client_ip not in limiter._requests or len(limiter._requests[client_ip]) == 0
 
 
 def test_security_headers_content():
@@ -64,9 +66,9 @@ def test_security_headers_content():
 
 def test_rate_limit_config():
     """Test rate limit configuration."""
-    middleware = RateLimitMiddleware(app=mock_asgi_app, max_requests=50, window_seconds=30)  # type: ignore[arg-type]
-    assert middleware.max_requests == 50
-    assert middleware.window_seconds == 30
+    limiter = MemoryRateLimiter(max_requests=50, window_seconds=30)
+    assert limiter.max_requests == 50
+    assert limiter.window_seconds == 30
 
 
 def test_input_sanitization_patterns():
@@ -109,9 +111,9 @@ def test_safe_input():
 
 def test_rate_limit_window():
     """Test rate limit window."""
-    middleware = RateLimitMiddleware(app=mock_asgi_app, max_requests=10, window_seconds=60)  # type: ignore[arg-type]
-    assert middleware.window_seconds == 60
-    assert middleware.max_requests == 10
+    limiter = MemoryRateLimiter(max_requests=10, window_seconds=60)
+    assert limiter.window_seconds == 60
+    assert limiter.max_requests == 10
 
 
 def test_security_middleware_order():
