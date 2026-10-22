@@ -6,12 +6,12 @@ Create Date: 2026-08-30
 """
 
 import sqlalchemy as sa
-
 from alembic import op
+from sqlalchemy.dialects import postgresql
 
 # revision identifiers
 revision = "005"
-down_revision = "004"
+down_revision = "004_reports"
 branch_labels = None
 depends_on = None
 
@@ -20,11 +20,11 @@ def upgrade() -> None:
     # Subscriptions table
     op.create_table(
         "subscriptions",
-        sa.Column("id", sa.String(36), primary_key=True),
-        sa.Column("user_id", sa.String(36), sa.ForeignKey("users.id"), nullable=False, index=True),
+        sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, server_default=sa.text("uuid_generate_v4()")),
+        sa.Column("user_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id"), nullable=False, index=True),
         sa.Column(
             "organization_id",
-            sa.String(36),
+            postgresql.UUID(as_uuid=True),
             sa.ForeignKey("organizations.id"),
             nullable=False,
             index=True,
@@ -50,18 +50,18 @@ def upgrade() -> None:
     # Payment records table
     op.create_table(
         "payment_records",
-        sa.Column("id", sa.String(36), primary_key=True),
+        sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, server_default=sa.text("uuid_generate_v4()")),
         sa.Column(
             "subscription_id",
-            sa.String(36),
+            postgresql.UUID(as_uuid=True),
             sa.ForeignKey("subscriptions.id"),
             nullable=False,
             index=True,
         ),
-        sa.Column("user_id", sa.String(36), sa.ForeignKey("users.id"), nullable=False, index=True),
+        sa.Column("user_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id"), nullable=False, index=True),
         sa.Column(
             "organization_id",
-            sa.String(36),
+            postgresql.UUID(as_uuid=True),
             sa.ForeignKey("organizations.id"),
             nullable=False,
             index=True,
@@ -82,7 +82,7 @@ def upgrade() -> None:
     # Webhook events table
     op.create_table(
         "webhook_events",
-        sa.Column("id", sa.String(36), primary_key=True),
+        sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, server_default=sa.text("uuid_generate_v4()")),
         sa.Column("event_id", sa.String(255), nullable=False, unique=True, index=True),
         sa.Column("event_type", sa.String(100), nullable=False),
         sa.Column("payload", sa.Text, nullable=False),
