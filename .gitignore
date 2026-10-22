@@ -1,4 +1,4 @@
-﻿# OS
+# OS
 .DS_Store
 Thumbs.db
 Desktop.ini
@@ -92,3 +92,6 @@ tmp/
 temp/
 *.tmp
 *.bak
+
+# Security scan reports (local artefacts)
+bandit-report.json
