@@ -17,10 +17,12 @@ RUN apt-get update && \
 # Install Python dependencies
 FROM base AS deps
 
+COPY packages/document_processing /app/packages/document_processing
 COPY apps/api/pyproject.toml .
 RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir /app/packages/document_processing[all] && \
     pip install --no-cache-dir -e ".[dev]" 2>/dev/null || \
-    pip install --no-cache-dir fastapi uvicorn[standard] pydantic pydantic-settings \
+    pip install --no-cache-dir fastapi uvicorn[standard] "pydantic[email]" pydantic-settings \
         sqlalchemy alembic asyncpg psycopg2-binary redis celery[redis] \
         python-jose[cryptography] passlib[bcrypt] python-multipart \
         httpx structlog prometheus-client boto3 mangum

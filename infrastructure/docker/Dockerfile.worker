@@ -15,8 +15,10 @@ RUN apt-get update && \
 
 FROM base AS deps
 
+COPY packages/document_processing /app/packages/document_processing
 COPY apps/api/pyproject.toml .
 RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir /app/packages/document_processing[all] && \
     pip install --no-cache-dir -e ".[dev]" 2>/dev/null || \
     pip install --no-cache-dir fastapi pydantic pydantic-settings \
         sqlalchemy alembic asyncpg psycopg2-binary redis celery[redis] \
