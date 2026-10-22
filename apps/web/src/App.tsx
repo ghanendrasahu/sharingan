@@ -1,5 +1,5 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { Routes, Route } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { AppLayout } from "./components/AppLayout";
 import { ProtectedRoute, PublicRoute } from "./components/ProtectedRoute";
 import { LoginPage } from "./pages/LoginPage";
@@ -12,8 +12,6 @@ import { SettingsPage } from "./pages/SettingsPage";
 import { documentsApi } from "./lib/documents";
 import { analysisApi } from "./lib/analysis";
 import { paymentsApi } from "./lib/payments";
-
-const queryClient = new QueryClient();
 
 function Dashboard() {
   const { data: documents } = useQuery({
@@ -101,29 +99,25 @@ function StatCard({
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          {/* Public routes */}
-          <Route element={<PublicRoute />}>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-          </Route>
+    <Routes>
+      {/* Public routes */}
+      <Route element={<PublicRoute />}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+      </Route>
 
-          {/* Protected routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route element={<AppLayout />}>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/documents" element={<DocumentsPage />} />
-              <Route path="/analysis" element={<AnalysisPage />} />
-              <Route path="/search" element={<SearchPage />} />
-              <Route path="/subscription" element={<PaymentPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-            </Route>
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </QueryClientProvider>
+      {/* Protected routes */}
+      <Route element={<ProtectedRoute />}>
+        <Route element={<AppLayout />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/documents" element={<DocumentsPage />} />
+          <Route path="/analysis" element={<AnalysisPage />} />
+          <Route path="/search" element={<SearchPage />} />
+          <Route path="/subscription" element={<PaymentPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+        </Route>
+      </Route>
+    </Routes>
   );
 }
 
