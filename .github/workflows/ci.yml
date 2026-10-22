@@ -198,3 +198,21 @@ jobs:
           tags: legallens-web:ci
           cache-from: type=gha,scope=web
           cache-to: type=gha,mode=max,scope=web
+
+      - name: Build the single-container image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: false
+          tags: legallens-single:ci
+          cache-from: type=gha,scope=single
+          cache-to: type=gha,mode=max,scope=single
+
+      - name: Verify the single-container image is not root
+        run: |
+          uid=$(docker run --rm --entrypoint id legallens-single:ci -u)
+          if [ "$uid" = "0" ]; then
+            echo "ERROR: the image runs as root"; exit 1
+          fi
+          echo "image runs as uid $uid"
