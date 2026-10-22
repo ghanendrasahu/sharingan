@@ -146,12 +146,18 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install pytest
-        run: pip install pytest
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Sync the workspace from the lockfile
+        run: uv sync --frozen --all-extras --all-packages
 
       - name: Run evaluation tests
         run: |
-          python -m pytest tests/evaluation/ -v
+          uv run --no-sync python -m pytest tests/evaluation/ -v
 
   docker:
     name: Docker Build
