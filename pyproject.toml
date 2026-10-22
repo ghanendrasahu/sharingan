@@ -64,3 +64,33 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = ["celery.*", "redis.*"]
 ignore_missing_imports = true
+
+# ---------------------------------------------------------------------------
+# uv workspace
+#
+# The root project carries the shared tooling configuration only, so it is
+# declared as a virtual (non-installable) project. Every distributable
+# package in the repository is a workspace member, which lets a single
+# uv.lock describe the whole dependency graph - including the local
+# document processing package that the API depends on.
+# ---------------------------------------------------------------------------
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = [
+    "apps/api",
+    "packages/ai",
+    "packages/document_processing",
+    "packages/legal",
+    "packages/retrieval",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-cov>=6.0.0",
+    "pytest-asyncio>=0.24.0",
+    "httpx>=0.28.0",
+    "ruff>=0.8.0",
+]

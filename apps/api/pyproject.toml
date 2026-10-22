@@ -12,7 +12,7 @@ license = "MIT"
 dependencies = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.32.0",
-    "pydantic>=2.10.0",
+    "pydantic[email]>=2.10.0",
     "pydantic-settings>=2.7.0",
     "sqlalchemy>=2.0.36",
     "alembic>=1.14.0",
@@ -29,7 +29,7 @@ dependencies = [
     "boto3>=1.35.0",
     "mangum>=0.19.0",
     "razorpay>=2.0.0",
-    "legallens-docproc[all] @ file:../../packages/document_processing",
+    "legallens-docproc[all]",
 ]
 
 [project.optional-dependencies]
@@ -86,3 +86,8 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = ["celery.*", "redis.*"]
 ignore_missing_imports = true
+
+# The document processing package lives in this repository, so it is resolved
+# from the workspace instead of a relative path (uv) or an index (pip).
+[tool.uv.sources]
+legallens-docproc = { workspace = true }

@@ -48,20 +48,21 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: pip
 
-      - name: Install dependencies
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Sync the workspace from the lockfile
         env:
           DEBUG: "true"
-        run: |
-          pip install pytest pytest-cov pytest-asyncio aiosqlite email-validator pyyaml sqlalchemy
-          pip install -e "packages/document_processing[dev]"
-          pip install -e "apps/api[dev]" --no-deps
-          pip install fastapi uvicorn pydantic pydantic-settings sqlalchemy alembic asyncpg psycopg2-binary redis celery python-jose "passlib[bcrypt]" bcrypt python-multipart httpx structlog prometheus-client boto3 mangum razorpay
+        run: uv sync --frozen --all-extras
 
       - name: Run tests
         run: |
-          python -m pytest apps/api/tests/ packages/document_processing/tests/ \
+          uv run --no-sync python -m pytest apps/api/tests/ packages/document_processing/tests/ \
             --cov=apps/api --cov=packages \
             --cov-report=term-missing --cov-fail-under=60
 
