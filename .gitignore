@@ -95,3 +95,4 @@ temp/
 
 # Security scan reports (local artefacts)
 bandit-report.json
+.venv-uv/

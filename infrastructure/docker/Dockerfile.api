@@ -15,17 +15,39 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
+#
+# The runtime dependencies are installed explicitly, mirroring
+# apps/api/pyproject.toml, and the application package is installed with
+# --no-deps. There is no fallback branch on purpose: a partially installed
+# image must fail the build instead of shipping at runtime.
 FROM base AS deps
 
 COPY packages/document_processing /app/packages/document_processing
 COPY apps/api/pyproject.toml .
+
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir /app/packages/document_processing[all] && \
-    pip install --no-cache-dir -e ".[dev]" 2>/dev/null || \
-    pip install --no-cache-dir fastapi uvicorn[standard] "pydantic[email]" pydantic-settings \
-        sqlalchemy alembic asyncpg psycopg2-binary redis celery[redis] \
-        python-jose[cryptography] passlib[bcrypt] python-multipart \
-        httpx structlog prometheus-client boto3 mangum
+    pip install --no-cache-dir "/app/packages/document_processing[all]" && \
+    pip install --no-cache-dir \
+        "fastapi>=0.115.0" \
+        "uvicorn[standard]>=0.32.0" \
+        "pydantic[email]>=2.10.0" \
+        "pydantic-settings>=2.7.0" \
+        "sqlalchemy[asyncio]>=2.0.36" \
+        "alembic>=1.14.0" \
+        "asyncpg>=0.30.0" \
+        "psycopg2-binary>=2.9.10" \
+        "redis>=5.2.0" \
+        "celery[redis]>=5.4.0" \
+        "python-jose[cryptography]>=3.3.0" \
+        "passlib[bcrypt]>=1.7.4" \
+        "python-multipart>=0.0.18" \
+        "httpx>=0.28.0" \
+        "structlog>=24.4.0" \
+        "prometheus-client>=0.21.0" \
+        "boto3>=1.35.0" \
+        "mangum>=0.19.0" \
+        "razorpay>=2.0.0" && \
+    pip install --no-cache-dir --no-deps -e .
 
 # Production image
 FROM base AS production

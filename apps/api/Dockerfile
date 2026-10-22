@@ -13,11 +13,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Runtime dependencies come straight from pyproject.toml (excluding the local
-# path dependency, which is installed from source below). No `|| fallback`
+# workspace package, which is installed from source below). No `|| fallback`
 # install: a build failure must fail the build, and no dev tooling is shipped.
 COPY apps/api/pyproject.toml ./pyproject.toml
 COPY packages/document_processing ./packages/document_processing
-RUN python -c "import tomllib; deps = tomllib.load(open('pyproject.toml', 'rb'))['project']['dependencies']; print('\n'.join(d for d in deps if 'file:' not in d))" > requirements.txt \
+RUN python -c "import tomllib; deps = tomllib.load(open('pyproject.toml', 'rb'))['project']['dependencies']; print('\n'.join(d for d in deps if 'legallens-docproc' not in d))" > requirements.txt \
     && pip install --no-cache-dir -r requirements.txt \
     && pip install --no-cache-dir "./packages/document_processing[all]"
 

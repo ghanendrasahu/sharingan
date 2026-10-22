@@ -89,6 +89,7 @@ LegalLens India helps startups, freelancers, employees, landlords/tenants, and s
 ### Prerequisites
 
 - Python 3.11+
+- [uv](https://docs.astral.sh/uv/) (the repository is a uv workspace - `uv.lock` pins the full dependency graph)
 - Node.js 20+
 - Docker & Docker Compose
 - Git
@@ -106,10 +107,8 @@ cp apps/api/.env.example apps/api/.env
 # Start infrastructure services
 docker compose up -d postgres redis minio
 
-# Install Python dependencies
-cd apps/api
-pip install -e ".[dev]"
-cd ../..
+# Install Python dependencies (resolved from the workspace lockfile)
+uv sync --all-extras --all-packages
 
 # Install Node dependencies
 cd apps/web
@@ -118,7 +117,7 @@ cd ../..
 
 # Run database migrations
 cd apps/api
-alembic upgrade head
+uv run alembic upgrade head
 cd ../..
 
 # Start development servers
@@ -149,25 +148,27 @@ Key variables:
 ## Testing
 
 ```bash
-# Run all tests (260+ tests)
+# Run all tests (340+ tests)
 make test
 
 # Run specific test suites
-cd apps/api && python -m pytest tests/ -q        # 216 API tests
-cd packages/ai && python -m pytest tests/ -q      # 19 AI tests
-cd packages/legal && python -m pytest tests/ -q   # 10 legal tests
-cd packages/retrieval && python -m pytest tests/ -q # 9 retrieval tests
-python -m pytest tests/evaluation/ -q              # 6 evaluation tests
+uv run pytest apps/api/tests/ -q                 # 224 API tests
+uv run pytest packages/ai/tests/ -q              # 19 AI tests
+uv run pytest packages/legal/tests/ -q           # 10 legal tests
+uv run pytest packages/retrieval/tests/ -q       # 9 retrieval tests
+uv run pytest packages/document_processing/tests/ -q  # 78 document processing tests
+uv run pytest tests/evaluation/ -q               # 6 evaluation tests
 ```
 
 ## CI/CD
 
 GitHub Actions workflow runs:
 - Lint (Ruff)
-- Unit tests (pytest)
+- Unit tests (pytest, installed from `uv.lock`)
+- Web lint & build (ESLint + TypeScript + Vite)
 - Security scan (Bandit)
 - AI evaluation tests
-- Docker build
+- Docker build (API, worker and web images)
 
 ## Security
 

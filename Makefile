@@ -1,4 +1,4 @@
-.PHONY: help lint format test security evaluate build deploy
+.PHONY: help setup lock lint format test security evaluate build deploy
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -12,10 +12,10 @@ format: ## Format code
 	ruff format apps/api/ packages/document_processing/ --config pyproject.toml
 
 test: ## Run tests
-	python -m pytest apps/api/tests/unit/ packages/document_processing/tests/ -v
+	uv run pytest apps/api/tests/unit/ packages/document_processing/tests/ -v
 
 test-cov: ## Run tests with coverage
-	python -m pytest apps/api/tests/unit/ packages/document_processing/tests/ \
+	uv run pytest apps/api/tests/unit/ packages/document_processing/tests/ \
 		--cov=apps/api --cov=packages/document_processing \
 		--cov-report=html --cov-report=term-missing -v
 
@@ -24,7 +24,13 @@ security: ## Run security scan
 	safety check --output json > safety-report.json || true
 
 evaluate: ## Run AI evaluation
-	python -m pytest apps/api/tests/unit/test_evaluation.py -v
+	uv run pytest apps/api/tests/unit/test_evaluation.py -v
+
+setup: ## Install the Python workspace from the lockfile
+	uv sync --all-extras --all-packages
+
+lock: ## Refresh the dependency lockfile
+	uv lock
 
 build: ## Build Docker images
 	docker compose build

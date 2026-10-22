@@ -58,7 +58,7 @@ jobs:
       - name: Sync the workspace from the lockfile
         env:
           DEBUG: "true"
-        run: uv sync --frozen --all-extras
+        run: uv sync --frozen --all-extras --all-packages
 
       - name: Run tests
         run: |

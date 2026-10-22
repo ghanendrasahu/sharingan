@@ -13,16 +13,36 @@ RUN apt-get update && \
         curl && \
     rm -rf /var/lib/apt/lists/*
 
+# The worker imports the same application package as the API, so it shares
+# the dependency set. The list mirrors apps/api/pyproject.toml and there is
+# no fallback branch: an incomplete image must fail the build.
 FROM base AS deps
 
 COPY packages/document_processing /app/packages/document_processing
 COPY apps/api/pyproject.toml .
+
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir /app/packages/document_processing[all] && \
-    pip install --no-cache-dir -e ".[dev]" 2>/dev/null || \
-    pip install --no-cache-dir fastapi pydantic pydantic-settings \
-        sqlalchemy alembic asyncpg psycopg2-binary redis celery[redis] \
-        python-jose[cryptography] passlib[bcrypt] httpx structlog boto3
+    pip install --no-cache-dir "/app/packages/document_processing[all]" && \
+    pip install --no-cache-dir \
+        "fastapi>=0.115.0" \
+        "pydantic[email]>=2.10.0" \
+        "pydantic-settings>=2.7.0" \
+        "sqlalchemy[asyncio]>=2.0.36" \
+        "alembic>=1.14.0" \
+        "asyncpg>=0.30.0" \
+        "psycopg2-binary>=2.9.10" \
+        "redis>=5.2.0" \
+        "celery[redis]>=5.4.0" \
+        "python-jose[cryptography]>=3.3.0" \
+        "passlib[bcrypt]>=1.7.4" \
+        "python-multipart>=0.0.18" \
+        "httpx>=0.28.0" \
+        "structlog>=24.4.0" \
+        "prometheus-client>=0.21.0" \
+        "boto3>=1.35.0" \
+        "mangum>=0.19.0" \
+        "razorpay>=2.0.0" && \
+    pip install --no-cache-dir --no-deps -e .
 
 FROM base AS production
 
