@@ -124,8 +124,13 @@ async def upload_document(
     # Calculate file hash
     file_hash = calculate_file_hash(content)
 
-    # Check for duplicate
-    existing = await db.execute(select(Document).where(Document.file_hash == file_hash))
+    # Check for duplicate within the same organization only (multi-tenant safe)
+    existing = await db.execute(
+        select(Document).where(
+            Document.file_hash == file_hash,
+            Document.organization_id == organization_id,
+        )
+    )
     if existing.scalar_one_or_none() is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
