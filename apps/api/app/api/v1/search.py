@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING, Annotated
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.deps import CurrentUser  # noqa: TC001 - FastAPI resolves this at runtime
 from app.core.config import get_settings
 from app.core.database import get_db
 from app.models.document import Document, DocumentClause, DocumentPage
@@ -25,9 +26,6 @@ from app.schemas.search import (
     SemanticSearchRequest,
     SemanticSearchResponse,
 )
-
-if TYPE_CHECKING:
-    from app.api.deps import CurrentUser
 
 router = APIRouter(prefix="/search", tags=["search"])
 

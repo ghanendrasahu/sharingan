@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from datetime import UTC
-from typing import TYPE_CHECKING
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession  # noqa: TC002 - FastAPI resolves this at runtime
 
 from app.api.deps import CurrentUser, RequireRole
 from app.core.database import get_db
@@ -20,9 +20,6 @@ from app.schemas.organization import (
     UpdateMemberRoleRequest,
     UpdateOrganizationRequest,
 )
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/organizations", tags=["Organizations"])
 

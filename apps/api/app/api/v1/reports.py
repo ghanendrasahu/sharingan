@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, Annotated
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.deps import CurrentUser  # noqa: TC001 - FastAPI resolves this at runtime
 from app.core.database import get_db
 from app.models.analysis import AnalysisResult, AnalysisRisk, AnalysisStatus
 from app.models.document import Document
@@ -25,9 +26,6 @@ from app.schemas.report import (
     ReportStatsResponse,
     RiskSummaryResponse,
 )
-
-if TYPE_CHECKING:
-    from app.api.deps import CurrentUser
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 

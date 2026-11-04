@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated
+from typing import Annotated
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession  # noqa: TC002 - FastAPI resolves this at runtime
 
+from app.api.deps import CurrentUser  # noqa: TC001 - FastAPI resolves this at runtime
 from app.core.database import get_db
 from app.models.organization import OrganizationMember
 from app.models.usage import UsageType
@@ -19,11 +21,6 @@ from app.schemas.usage import (
     UsageOverviewResponse,
 )
 from app.services.usage import usage_service
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.api.deps import CurrentUser  # noqa: TC001
 
 router = APIRouter(prefix="/usage", tags=["usage"])
 

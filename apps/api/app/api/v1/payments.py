@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from fastapi import APIRouter, Request
 
+from app.api.deps import CurrentUser  # noqa: TC001 - FastAPI resolves this at runtime
 from app.models.payment import PLANS, PlanType
 from app.schemas.payment import (
     CancelSubscriptionRequest,
@@ -20,9 +21,6 @@ from app.schemas.payment import (
     WebhookResponse,
 )
 from app.services.payment import payment_service
-
-if TYPE_CHECKING:
-    from app.api.deps import CurrentUser
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 

@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession  # noqa: TC002 - FastAPI resolves this at runtime
 
+from app.api.deps import CurrentUser  # noqa: TC001 - FastAPI resolves this at runtime
 from app.core.config import get_settings
 from app.core.database import get_db
 from app.models.user import User
@@ -27,11 +29,6 @@ from app.services.auth import (
     hash_password,
     verify_password,
 )
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-    from app.api.deps import CurrentUser
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 settings = get_settings()

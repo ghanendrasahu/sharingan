@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Annotated
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.deps import CurrentUser  # noqa: TC001 - FastAPI resolves this at runtime
 from app.core.celery_config import celery_app
 from app.core.database import get_db
 from app.models.analysis import AnalysisResult, AnalysisRisk, AnalysisStatus
@@ -23,9 +24,6 @@ from app.schemas.analysis import (
     RiskFindingResponse,
 )
 from app.tasks.analysis import analyze_document_task
-
-if TYPE_CHECKING:
-    from app.api.deps import CurrentUser
 
 logger = logging.getLogger(__name__)
 

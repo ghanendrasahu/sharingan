@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from fastapi import APIRouter, Query
 
+from app.api.deps import CurrentUser  # noqa: TC001 - FastAPI resolves this at runtime
 from app.models.audit import AuditEventType, AuditSeverity
 from app.schemas.audit import (
     AuditLogResponse,
@@ -14,9 +15,6 @@ from app.schemas.audit import (
     SecuritySummaryResponse,
 )
 from app.services.audit import audit_service
-
-if TYPE_CHECKING:
-    from app.api.deps import CurrentUser
 
 router = APIRouter(prefix="/audit", tags=["audit"])
 
