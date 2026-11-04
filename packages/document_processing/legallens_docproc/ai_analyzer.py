@@ -183,15 +183,23 @@ async def analyze_clause_risk(
     response = await provider.generate(prompt)
     result = _parse_json_response(response)
 
+    raw_level = str(result.get("risk_level", "low")).strip().lower()
+    try:
+        severity = RiskSeverity(raw_level)
+    except ValueError:
+        severity = RiskSeverity.LOW
+
+    raw_recommendations = result.get("recommendations") or ["Review clause"]
+    if isinstance(raw_recommendations, str):
+        raw_recommendations = [raw_recommendations]
+
     return RiskFinding(
         risk_id=f"risk_{uuid.uuid4().hex[:8]}",
         title=f"Risk in clause: {clause.clause_id}",
         description=result.get("summary", "Risk analysis completed"),
-        severity=RiskSeverity(result.get("risk_level", "low")),
+        severity=severity,
         clause_reference=clause.clause_id,
-        recommendation=result.get("recommendations", ["Review clause"])[0]
-        if result.get("recommendations")
-        else "",
+        recommendation=raw_recommendations[0] if raw_recommendations else "",
         confidence=result.get("risk_score", 0.5),
     )
 

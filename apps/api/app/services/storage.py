@@ -1,9 +1,11 @@
-"""Object storage service - S3/MinIO abstraction."""
+"""Object storage service - S3/MinIO or local-disk abstraction."""
 
 from __future__ import annotations
 
 import hashlib
+import hmac
 import mimetypes
+import time
 from datetime import UTC
 from pathlib import Path
 from typing import Any
@@ -15,6 +17,35 @@ from botocore.config import Config
 from app.core.config import get_settings
 
 settings = get_settings()
+
+
+def _local_root() -> Path:
+    """Filesystem root used when ``OBJECT_STORAGE_BACKEND=local``."""
+    root = Path(settings.OBJECT_STORAGE_LOCAL_DIR)
+    root.mkdir(parents=True, exist_ok=True)
+    return root
+
+
+def _local_path(storage_key: str) -> Path:
+    """Resolve a storage key inside the local root (no traversal)."""
+    root = _local_root().resolve()
+    candidate = (root / storage_key).resolve()
+    if not candidate.is_relative_to(root):
+        raise ValueError("Invalid storage key")
+    return candidate
+
+
+def _sign(storage_key: str, expires: int) -> str:
+    """Sign a local download URL with the application secret."""
+    message = f"{storage_key}:{expires}".encode()
+    return hmac.new(settings.SECRET_KEY.encode(), message, hashlib.sha256).hexdigest()
+
+
+def verify_local_signature(storage_key: str, expires: int, signature: str) -> bool:
+    """Validate a local download URL (constant-time, expiry-aware)."""
+    if expires < int(time.time()):
+        return False
+    return hmac.compare_digest(_sign(storage_key, expires), signature)
 
 
 def get_s3_client() -> Any:
@@ -34,6 +65,9 @@ def get_s3_client() -> Any:
 
 def ensure_bucket_exists() -> None:
     """Ensure the storage bucket exists, create if not."""
+    if settings.OBJECT_STORAGE_BACKEND == "local":
+        _local_root()
+        return
     client = get_s3_client()
     try:
         client.head_bucket(Bucket=settings.OBJECT_STORAGE_BUCKET)
@@ -96,6 +130,17 @@ async def upload_file(
     metadata: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Upload a file to object storage."""
+    if settings.OBJECT_STORAGE_BACKEND == "local":
+        path = _local_path(storage_key)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+        return {
+            "storage_key": storage_key,
+            "bucket": "local",
+            "size": len(data),
+            "content_type": content_type,
+        }
+
     client = get_s3_client()
 
     extra_args: dict[str, Any] = {
@@ -121,6 +166,9 @@ async def upload_file(
 
 async def download_file(storage_key: str) -> bytes:
     """Download a file from object storage."""
+    if settings.OBJECT_STORAGE_BACKEND == "local":
+        return _local_path(storage_key).read_bytes()
+
     client = get_s3_client()
 
     response = client.get_object(
@@ -133,6 +181,13 @@ async def download_file(storage_key: str) -> bytes:
 
 async def delete_file(storage_key: str) -> bool:
     """Delete a file from object storage."""
+    if settings.OBJECT_STORAGE_BACKEND == "local":
+        try:
+            _local_path(storage_key).unlink(missing_ok=True)
+            return True
+        except (OSError, ValueError):
+            return False
+
     client = get_s3_client()
 
     try:
@@ -150,6 +205,14 @@ def generate_presigned_url(
     expiration: int = 3600,
 ) -> str:
     """Generate a presigned URL for file access."""
+    if settings.OBJECT_STORAGE_BACKEND == "local":
+        expires = int(time.time()) + expiration
+        signature = _sign(storage_key, expires)
+        return (
+            f"{settings.API_V1_PREFIX}/documents/file/{storage_key}"
+            f"?expires={expires}&sig={signature}"
+        )
+
     client = get_s3_client()
 
     url = client.generate_presigned_url(
@@ -166,6 +229,12 @@ def generate_presigned_url(
 
 async def file_exists(storage_key: str) -> bool:
     """Check if a file exists in object storage."""
+    if settings.OBJECT_STORAGE_BACKEND == "local":
+        try:
+            return _local_path(storage_key).is_file()
+        except ValueError:
+            return False
+
     client = get_s3_client()
 
     try:

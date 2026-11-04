@@ -2,12 +2,22 @@
 
 from __future__ import annotations
 
+import base64
+import mimetypes
 from datetime import UTC
 from pathlib import Path
 from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    HTTPException,
+    UploadFile,
+    status,
+)
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession  # noqa: TC002 - FastAPI resolves this at runtime
@@ -25,10 +35,12 @@ from app.schemas.document import (
 )
 from app.services.storage import (
     calculate_file_hash,
+    download_file,
     ensure_bucket_exists,
     generate_presigned_url,
     generate_storage_key,
     upload_file,
+    verify_local_signature,
 )
 from app.services.validation import (
     DocumentValidationError,
@@ -50,6 +62,7 @@ ALLOWED_EXTENSIONS = {".pdf", ".docx"}
 async def upload_document(
     file: UploadFile,
     organization_id: UUID,
+    background_tasks: BackgroundTasks,
     current_user: CurrentUser,
     _membership: OrganizationMember = Depends(  # noqa: B008
         RequireRole(MemberRole.OWNER, MemberRole.ADMIN, MemberRole.MEMBER)  # noqa: B008
@@ -148,7 +161,58 @@ async def upload_document(
     await db.flush()
     await db.refresh(document)
 
-    return document
+    # Persist before processing: the task runs in a separate session/thread.
+    await db.commit()
+
+    from app.tasks.document import process_document_task
+
+    background_tasks.add_task(
+        process_document_task.delay,
+        document_id=str(document.id),
+        filename=document.original_filename or "document",
+        file_content_b64=base64.b64encode(content).decode(),
+        user_id=str(current_user.id),
+        organization_id=str(organization_id),
+    )
+
+    return DocumentUploadResponse(
+        id=document.id,
+        filename=document.original_filename,
+        status=str(document.status),
+        message="Document uploaded; processing queued",
+    )
+
+
+@router.get("/file/{storage_key:path}", include_in_schema=False)
+async def download_local_document(
+    storage_key: str,
+    expires: int,
+    sig: str,
+) -> Response:
+    """Serve a locally stored document through a signed URL."""
+    if settings.OBJECT_STORAGE_BACKEND != "local":
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    if not verify_local_signature(storage_key, expires, sig):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid or expired download link",
+        )
+    try:
+        data = await download_file(storage_key)
+    except (FileNotFoundError, ValueError):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="File not found",
+        ) from None
+
+    media_type = mimetypes.guess_type(storage_key)[0] or "application/octet-stream"
+    return Response(
+        content=data,
+        media_type=media_type,
+        headers={
+            "Content-Disposition": f'inline; filename="{Path(storage_key).name}"',
+        },
+    )
 
 
 @router.get(

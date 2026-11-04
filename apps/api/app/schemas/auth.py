@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from uuid import UUID  # noqa: TC003 - Pydantic resolves this annotation at runtime
+
 from pydantic import BaseModel, EmailStr, Field
 
 
@@ -38,7 +40,7 @@ class RefreshRequest(BaseModel):
 class UserResponse(BaseModel):
     """User response."""
 
-    id: str
+    id: UUID
     email: str
     full_name: str | None
     is_active: bool

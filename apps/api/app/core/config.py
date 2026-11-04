@@ -32,6 +32,8 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379/0"
 
     # Object Storage (S3-compatible)
+    OBJECT_STORAGE_BACKEND: Literal["s3", "local"] = "s3"
+    OBJECT_STORAGE_LOCAL_DIR: str = "/tmp/legallens-documents"
     OBJECT_STORAGE_ENDPOINT: str = "http://localhost:9000"
     OBJECT_STORAGE_ACCESS_KEY: str = "minioadmin"
     OBJECT_STORAGE_SECRET_KEY: str = "minioadmin"
@@ -86,10 +88,11 @@ class Settings(BaseSettings):
         failures: list[str] = []
         if self.SECRET_KEY in _INSECURE_DEFAULTS:
             failures.append("SECRET_KEY")
-        if self.OBJECT_STORAGE_ACCESS_KEY in _INSECURE_DEFAULTS:
-            failures.append("OBJECT_STORAGE_ACCESS_KEY")
-        if self.OBJECT_STORAGE_SECRET_KEY in _INSECURE_DEFAULTS:
-            failures.append("OBJECT_STORAGE_SECRET_KEY")
+        if self.OBJECT_STORAGE_BACKEND == "s3":
+            if self.OBJECT_STORAGE_ACCESS_KEY in _INSECURE_DEFAULTS:
+                failures.append("OBJECT_STORAGE_ACCESS_KEY")
+            if self.OBJECT_STORAGE_SECRET_KEY in _INSECURE_DEFAULTS:
+                failures.append("OBJECT_STORAGE_SECRET_KEY")
         if self.RATE_LIMIT_BACKEND == "memory":
             failures.append("RATE_LIMIT_BACKEND")
 

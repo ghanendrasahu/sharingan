@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from datetime import datetime  # noqa: TC003 - Pydantic resolves this annotation at runtime
+from uuid import UUID  # noqa: TC003 - Pydantic resolves this annotation at runtime
+
 from pydantic import BaseModel, Field
 
 
@@ -23,11 +26,11 @@ class UpdateOrganizationRequest(BaseModel):
 class OrganizationResponse(BaseModel):
     """Organization response."""
 
-    id: str
+    id: UUID
     name: str
     slug: str
     description: str | None
-    created_at: str
+    created_at: datetime
 
     model_config = {"from_attributes": True}
 
@@ -35,10 +38,10 @@ class OrganizationResponse(BaseModel):
 class OrganizationMemberResponse(BaseModel):
     """Organization member response."""
 
-    id: str
-    user_id: str
+    id: UUID
+    user_id: UUID
     role: str
-    created_at: str
+    created_at: datetime
 
     model_config = {"from_attributes": True}
 
