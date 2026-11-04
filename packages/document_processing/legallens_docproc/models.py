@@ -65,6 +65,14 @@ class ProcessedDocument:
     error: str | None = None
 
     def __post_init__(self):
+        self.refresh_statistics()
+
+    def refresh_statistics(self) -> None:
+        """Recompute derived counts after ``pages`` are attached.
+
+        Processors build the document first and fill ``pages`` afterwards, so
+        the constructor's snapshot goes stale without an explicit refresh.
+        """
         self.full_text = "\n\n".join(page.text for page in self.pages if page.text)
         self.total_pages = len(self.pages)
         self.total_chars = len(self.full_text)

@@ -105,6 +105,30 @@ def test_process_document_docx():
     assert isinstance(result, type(result))
 
 
+def test_process_docx_reports_page_count():
+    """DOCX pages are attached after construction; totals must refresh."""
+    from io import BytesIO
+
+    from docx import Document
+
+    buffer = BytesIO()
+    document = Document()
+    document.add_paragraph("Service agreement between the parties.")
+    document.save(buffer)
+
+    result = process_document(
+        document_id="test-docx-pages",
+        filename="agreement.docx",
+        content=buffer.getvalue(),
+    )
+
+    assert result.success is True
+    assert result.document is not None
+    assert result.document.total_pages == 1
+    assert result.document.total_words >= 5
+    assert result.document.full_text
+
+
 def test_mock_ocr():
     """Test mock OCR provider."""
     ocr = MockOCR()

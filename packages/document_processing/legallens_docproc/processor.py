@@ -119,6 +119,9 @@ def process_document(
             ]
             doc.metadata = docx_result.metadata
 
+        # Pages are attached after construction; recompute totals before return.
+        doc.refresh_statistics()
+
         # Mark as completed
         doc.status = ProcessingStatus.COMPLETED
         doc.processing_time_ms = (time.time() - start_time) * 1000
