@@ -15,6 +15,7 @@ from legallens_docproc.ai_analyzer import (
 )
 from legallens_docproc.analysis_models import AnalysisType
 
+from app.core.celery_config import celery_app  # noqa: F401 - binds shared_task to this app
 from app.core.config import get_settings
 from app.core.database import get_sync_session
 from app.models.analysis import AnalysisResult, AnalysisRisk, AnalysisStatus

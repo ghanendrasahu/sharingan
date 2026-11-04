@@ -13,11 +13,13 @@ logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
-# Create Celery app
+# Create Celery app. In eager mode tasks run inside the API process, so the
+# result backend must also be local (no Redis connection is attempted).
+_result_backend = "cache+memory://" if settings.CELERY_TASK_ALWAYS_EAGER else settings.REDIS_URL
 celery_app = Celery(
     "legallens",
     broker=settings.REDIS_URL,
-    backend=settings.REDIS_URL,
+    backend=_result_backend,
 )
 
 # Configure Celery
@@ -38,7 +40,8 @@ celery_app.conf.update(
     # Results
     result_expires=3600,  # 1 hour
     # Security
-    task_always_eager=False,  # Set True for testing
+    task_always_eager=settings.CELERY_TASK_ALWAYS_EAGER,
+    task_eager_propagates=False,
     # Rate limiting
     task_default_rate_limit="10/m",
     # Routing
@@ -69,6 +72,10 @@ celery_app.conf.update(
     # Discovery
     include=["app.tasks.document", "app.tasks.analysis"],
 )
+
+# Bind @shared_task decorators (and .delay calls made by the API process) to
+# this configured app instead of Celery's implicit default app.
+celery_app.set_default()
 
 
 @task_prerun.connect

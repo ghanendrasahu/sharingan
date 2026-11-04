@@ -41,7 +41,10 @@ async_session_factory = async_sessionmaker(
 )
 
 # Synchronous engine for Celery tasks (Celery runs synchronously)
-_sync_database_url = settings.DATABASE_URL.replace("+asyncpg", "+psycopg2")
+# asyncpg accepts ?ssl=require while psycopg2 expects ?sslmode=require.
+_sync_database_url = settings.DATABASE_URL.replace("+asyncpg", "+psycopg2").replace(
+    "ssl=require", "sslmode=require"
+)
 sync_engine = create_engine(
     _sync_database_url,
     echo=settings.DATABASE_ECHO,

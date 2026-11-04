@@ -73,6 +73,10 @@ class Settings(BaseSettings):
     RATE_LIMIT_MAX_REQUESTS: int = 100
     RATE_LIMIT_WINDOW_SECONDS: int = 60
 
+    # Run Celery tasks inline in the API process. Required on hosts that do
+    # not offer a free background worker; no Redis broker is used in this mode.
+    CELERY_TASK_ALWAYS_EAGER: bool = False
+
     @model_validator(mode="after")
     def _reject_insecure_defaults(self) -> "Settings":
         """Reject insecure default secrets in production."""

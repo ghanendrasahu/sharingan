@@ -11,6 +11,7 @@ from celery import shared_task
 from legallens_docproc.clause_segmenter import segment_clauses
 from legallens_docproc.processor import process_document
 
+from app.core.celery_config import celery_app  # noqa: F401 - binds shared_task to this app
 from app.core.database import get_sync_session
 from app.models.document import Document, DocumentClause, DocumentPage, DocumentStatus
 from app.models.task import TaskInfo, TaskType
